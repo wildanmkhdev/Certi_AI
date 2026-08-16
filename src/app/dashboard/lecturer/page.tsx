@@ -20,6 +20,7 @@ import {
   ThumbsUp,
   ThumbsDown,
   RefreshCw,
+  Star,
 } from 'lucide-react';
 import { Certificate, Profile } from '@/types/database';
 
@@ -86,7 +87,6 @@ export default function LecturerDashboard() {
   const fetchQueues = async () => {
     try {
       // 1. Fetch pending certificates (status: waiting_review, processing, pending)
-      // Since processing/pending don't have AI yet, we specifically show waiting_review for review.
       const { data: pending } = await supabase
         .from('certificates')
         .select('*, student:profiles!student_id(full_name, student_number, email)')
@@ -122,7 +122,6 @@ export default function LecturerDashboard() {
     setLoadingModal(true);
 
     try {
-      // 1. Fetch AI Analysis details
       const { data: analysis } = await supabase
         .from('certificate_ai_analysis')
         .select('*')
@@ -130,11 +129,8 @@ export default function LecturerDashboard() {
         .maybeSingle();
 
       setAiAnalysis(analysis);
-      
-      // Default final weight to recommended weight
       setFinalWeight(analysis?.recommended_weight ?? 0);
 
-      // 2. Generate Signed URL for preview
       const { data: signed } = await supabase.storage
         .from('certificates')
         .createSignedUrl(cert.file_path, 3600);
@@ -158,7 +154,7 @@ export default function LecturerDashboard() {
       const weight = decision === 'approved' ? Number(finalWeight) : 0;
 
       // 1. Insert review record
-      const { error: reviewError } = await supabase
+      const { error: reviewErr } = await supabase
         .from('certificate_reviews')
         .insert({
           certificate_id: selectedCert.id,
@@ -168,10 +164,10 @@ export default function LecturerDashboard() {
           note: reviewNote,
         });
 
-      if (reviewError) throw reviewError;
+      if (reviewErr) throw reviewErr;
 
       // 2. Update certificate record status and final weight
-      const { error: certError } = await supabase
+      const { error: certErr } = await supabase
         .from('certificates')
         .update({
           status: decision,
@@ -180,7 +176,7 @@ export default function LecturerDashboard() {
         })
         .eq('id', selectedCert.id);
 
-      if (certError) throw certError;
+      if (certErr) throw certErr;
 
       setSelectedCert(null);
       await fetchQueues();
@@ -191,54 +187,56 @@ export default function LecturerDashboard() {
     }
   };
 
-  // Stats calculation
   const statsPending = pendingCerts.length;
   const statsApproved = historyCerts.filter(c => c.status === 'approved').length;
   const statsRejected = historyCerts.filter(c => c.status === 'rejected').length;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center">
-        <Loader2 className="w-10 h-10 text-blue-500 animate-spin mb-4" />
-        <p className="text-slate-400 text-sm">Memuat Dashboard Dosen...</p>
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center">
+        <Loader2 className="w-10 h-10 text-[#224813] animate-spin mb-4" />
+        <p className="text-slate-500 text-sm font-semibold">Memuat Dashboard Dosen...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
       {/* HEADER */}
-      <header className="border-b border-slate-900 bg-slate-900/40 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-violet-600 flex items-center justify-center shadow-lg shadow-blue-500/10">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#224813] to-emerald-600 flex items-center justify-center shadow-sm">
               <Award className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">CertiAI</h1>
-              <p className="text-xs text-slate-400">Dashboard Dosen Verifikator</p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-black text-slate-900 leading-none">Certi<span className="text-[#224813]">AI</span></span>
+                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-[#224813] border border-emerald-100 uppercase tracking-widest">UINSU</span>
+              </div>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Dashboard Dosen Verifikator</p>
             </div>
           </div>
 
           <div className="flex items-center gap-4">
             {/* Profile Summary */}
-            <div className="hidden sm:flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-blue-400">
-                <UserIcon className="w-5 h-5" />
+            <div className="hidden sm:flex items-center gap-3 pr-4 border-r border-slate-200">
+              <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-[#224813]">
+                <UserIcon className="w-4.5 h-4.5" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-white leading-tight">{profile?.full_name}</p>
-                <p className="text-[10px] text-slate-500">NIDN: {profile?.lecturer_number}</p>
+                <p className="text-xs font-bold text-slate-900 leading-tight">{profile?.full_name}</p>
+                <p className="text-[10px] text-slate-400 font-bold">NIDN: {profile?.lecturer_number}</p>
               </div>
             </div>
 
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-xl bg-slate-900 border border-slate-850 text-slate-400 hover:text-red-400 hover:border-red-950/30 transition-all flex items-center justify-center"
+              className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-450 hover:text-red-650 hover:border-red-100 hover:bg-red-50/30 transition-all flex items-center justify-center cursor-pointer"
               title="Keluar"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
@@ -248,54 +246,60 @@ export default function LecturerDashboard() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Profile Card Mobile */}
-        <div className="sm:hidden bg-slate-900/40 border border-slate-800/80 rounded-2xl p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-blue-400">
+        <div className="sm:hidden bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3 shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-[#224813]/10 flex items-center justify-center text-[#224813]">
             <UserIcon className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">{profile?.full_name}</p>
-            <p className="text-xs text-slate-500">NIDN: {profile?.lecturer_number}</p>
+            <p className="text-sm font-bold text-slate-900">{profile?.full_name}</p>
+            <p className="text-xs text-slate-450 font-bold">NIDN: {profile?.lecturer_number}</p>
           </div>
         </div>
 
         {/* STATS BAR */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Menunggu Review</p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Menunggu Review</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-extrabold text-amber-500">{statsPending}</span>
-              <Clock className="w-6 h-6 text-amber-500" />
+              <span className="text-2xl font-black text-amber-700">{statsPending}</span>
+              <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                <Clock className="w-5 h-5" />
+              </div>
             </div>
           </div>
           
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Disetujui</p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Disetujui</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-extrabold text-emerald-400">{statsApproved}</span>
-              <CheckCircle className="w-6 h-6 text-emerald-500" />
+              <span className="text-2xl font-black text-emerald-700">{statsApproved}</span>
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <CheckCircle className="w-5 h-5" />
+              </div>
             </div>
           </div>
 
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Ditolak</p>
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ditolak</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-2xl font-extrabold text-red-500">{statsRejected}</span>
-              <XCircle className="w-6 h-6 text-red-500" />
+              <span className="text-2xl font-black text-red-750">{statsRejected}</span>
+              <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+                <XCircle className="w-5 h-5" />
+              </div>
             </div>
           </div>
         </div>
 
         {/* WORKLIST */}
-        <div className="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 shadow-xl">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 mb-6 gap-3">
             {/* Tabs */}
-            <div className="flex gap-2 p-1 bg-slate-950/80 rounded-xl border border-slate-800">
+            <div className="flex gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200 self-start">
               <button
                 onClick={() => setActiveTab('pending')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 cursor-pointer ${
                   activeTab === 'pending'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-[#224813] text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <ClipboardList className="w-4 h-4" />
@@ -303,10 +307,10 @@ export default function LecturerDashboard() {
               </button>
               <button
                 onClick={() => setActiveTab('history')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all duration-300 cursor-pointer ${
                   activeTab === 'history'
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-[#224813] text-white shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <Clock className="w-4 h-4" />
@@ -316,9 +320,9 @@ export default function LecturerDashboard() {
 
             <button
               onClick={fetchQueues}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:text-white text-slate-400 transition-all flex items-center gap-2 text-xs"
+              className="p-2 px-3.5 rounded-xl bg-white border border-slate-200 hover:border-slate-350 text-slate-600 hover:text-[#224813] transition-all flex items-center gap-2 text-xs font-bold shadow-sm cursor-pointer self-start sm:self-auto"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3.5 h-3.5" />
               Segarkan
             </button>
           </div>
@@ -326,19 +330,19 @@ export default function LecturerDashboard() {
           {activeTab === 'pending' ? (
             pendingCerts.length === 0 ? (
               <div className="text-center py-20">
-                <div className="w-16 h-16 rounded-full bg-slate-950 flex items-center justify-center text-slate-600 mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8" />
+                <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 mx-auto mb-4 border border-slate-100">
+                  <CheckCircle className="w-7 h-7" />
                 </div>
-                <h4 className="text-slate-400 font-bold">Semua Bersih!</h4>
-                <p className="text-slate-500 text-xs mt-1">
+                <h4 className="text-slate-700 font-bold text-sm">Semua Bersih!</h4>
+                <p className="text-slate-450 text-xs mt-1 font-medium">
                   Tidak ada sertifikat yang menunggu verifikasi saat ini.
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <tr className="border-b border-slate-100 text-slate-450 font-bold uppercase tracking-wider">
                       <th className="py-3 px-2">Mahasiswa</th>
                       <th className="py-3 px-2">Kegiatan Terdeteksi</th>
                       <th className="py-3 px-2">Kategori</th>
@@ -346,29 +350,29 @@ export default function LecturerDashboard() {
                       <th className="py-3 px-2 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50">
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
                     {pendingCerts.map(cert => (
-                      <tr key={cert.id} className="hover:bg-slate-900/10 transition-all">
+                      <tr key={cert.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="py-4 px-2">
-                          <p className="font-bold text-white text-xs">{cert.student?.full_name}</p>
-                          <span className="text-[10px] text-slate-500 block mt-1">NIM: {cert.student?.student_number}</span>
+                          <p className="font-bold text-slate-900">{cert.student?.full_name}</p>
+                          <span className="text-[9px] text-slate-450 font-bold block mt-1">NIM: {cert.student?.student_number}</span>
                         </td>
                         <td className="py-4 px-2">
-                          <p className="font-semibold text-slate-200 text-xs truncate max-w-[200px]">{cert.title || cert.file_name}</p>
-                          <span className="text-[10px] text-slate-500 block mt-0.5">{cert.organizer || '-'}</span>
+                          <p className="font-bold text-slate-800 truncate max-w-[200px]">{cert.title || cert.file_name}</p>
+                          <span className="text-[9px] text-slate-450 font-bold block mt-0.5">{cert.organizer || '-'}</span>
                         </td>
                         <td className="py-4 px-2">
-                          <span className="px-2 py-0.5 bg-slate-950 border border-slate-850 rounded text-[10px] font-bold text-blue-400">
+                          <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded text-[9px] font-extrabold text-[#224813]">
                             {cert.category || 'Belum terdeteksi'}
                           </span>
                         </td>
-                        <td className="py-4 px-2 text-center font-extrabold text-white text-sm">
+                        <td className="py-4 px-2 text-center font-extrabold text-slate-900 text-sm">
                           {cert.status === 'waiting_review' ? 'Menghitung...' : '-'}
                         </td>
                         <td className="py-4 px-2 text-right">
                           <button
                             onClick={() => openReviewModal(cert)}
-                            className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10 hover:shadow-blue-500/20 active:scale-[0.98] inline-flex items-center gap-1.5"
+                            className="px-3.5 py-2 bg-gradient-to-r from-[#224813] to-emerald-700 hover:from-[#1a360f] hover:to-emerald-800 text-white rounded-xl font-bold transition-all shadow-sm shadow-[#224813]/10 active:scale-[0.98] inline-flex items-center gap-1.5 cursor-pointer duration-300"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                             Review
@@ -382,14 +386,14 @@ export default function LecturerDashboard() {
             )
           ) : (
             historyCerts.length === 0 ? (
-              <div className="text-center py-20 text-slate-500 text-xs">
+              <div className="text-center py-20 text-slate-450 text-xs font-semibold">
                 Belum ada sertifikat yang telah selesai Anda review.
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+                    <tr className="border-b border-slate-100 text-slate-450 font-bold uppercase tracking-wider">
                       <th className="py-3 px-2">Mahasiswa</th>
                       <th className="py-3 px-2">Nama Berkas</th>
                       <th className="py-3 px-2">Kategori</th>
@@ -398,30 +402,30 @@ export default function LecturerDashboard() {
                       <th className="py-3 px-2 text-right">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/50">
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
                     {historyCerts.map(cert => (
-                      <tr key={cert.id} className="hover:bg-slate-900/10 transition-all text-xs">
+                      <tr key={cert.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="py-4 px-2">
-                          <p className="font-bold text-white">{cert.student?.full_name}</p>
-                          <span className="text-[10px] text-slate-550 block mt-0.5">NIM: {cert.student?.student_number}</span>
+                          <p className="font-bold text-slate-900">{cert.student?.full_name}</p>
+                          <span className="text-[9px] text-slate-450 font-bold block mt-0.5">NIM: {cert.student?.student_number}</span>
                         </td>
                         <td className="py-4 px-2 max-w-[150px] truncate">
-                          <p className="font-semibold text-slate-200 truncate">{cert.title || cert.file_name}</p>
-                          <span className="text-[9px] text-slate-500 block mt-0.5">{new Date(cert.updated_at).toLocaleDateString()}</span>
+                          <p className="font-bold text-slate-800 truncate">{cert.title || cert.file_name}</p>
+                          <span className="text-[9px] text-slate-450 font-semibold block mt-0.5">{new Date(cert.updated_at).toLocaleDateString('id-ID')}</span>
                         </td>
                         <td className="py-4 px-2">
-                          <span className="px-2 py-0.5 bg-slate-950 border border-slate-850 rounded text-[9px] font-bold text-slate-400">
+                          <span className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-[9px] font-bold text-slate-500">
                             {cert.category}
                           </span>
                         </td>
-                        <td className="py-4 px-2 text-center font-black text-white text-sm">
+                        <td className="py-4 px-2 text-center font-black text-slate-900 text-sm">
                           {cert.final_weight}
                         </td>
                         <td className="py-4 px-2 text-center">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider ${
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-extrabold tracking-wider border ${
                             cert.status === 'approved'
-                              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/40'
-                              : 'bg-red-950/40 text-red-400 border border-red-900/40'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-150'
+                              : 'bg-red-50 text-red-800 border-red-150'
                           }`}>
                             {cert.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                           </span>
@@ -429,7 +433,7 @@ export default function LecturerDashboard() {
                         <td className="py-4 px-2 text-right">
                           <button
                             onClick={() => openReviewModal(cert)}
-                            className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-850 border border-slate-850 text-white rounded-lg text-[11px] font-semibold transition-all"
+                            className="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 hover:border-[#224813] text-[#224813] rounded-lg font-bold shadow-sm transition-all cursor-pointer"
                           >
                             Buka Detail
                           </button>
@@ -446,21 +450,21 @@ export default function LecturerDashboard() {
 
       {/* REVIEW MODAL */}
       {selectedCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
               <div>
-                <h3 className="font-bold text-white text-lg">
+                <h3 className="font-extrabold text-slate-900 text-base">
                   {selectedCert.status === 'waiting_review' ? 'Verifikasi & Evaluasi Sertifikat' : 'Detail Sertifikat Terverifikasi'}
                 </h3>
-                <p className="text-slate-400 text-xs mt-0.5">
-                  Mahasiswa: <span className="text-slate-200 font-semibold">{selectedCert.student?.full_name}</span> (NIM: {selectedCert.student?.student_number})
+                <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                  Mahasiswa: <span className="text-slate-800 font-bold">{selectedCert.student?.full_name}</span> (NIM: {selectedCert.student?.student_number})
                 </p>
               </div>
               <button
                 onClick={() => setSelectedCert(null)}
-                className="p-1.5 rounded-lg bg-slate-850 hover:bg-slate-800 text-slate-400 hover:text-white transition-all text-xs"
+                className="p-1.5 px-3 rounded-lg bg-white border border-slate-250 hover:bg-slate-50 text-slate-500 hover:text-slate-900 transition-all text-xs font-bold cursor-pointer"
               >
                 Tutup
               </button>
@@ -469,44 +473,44 @@ export default function LecturerDashboard() {
             {/* Modal Body */}
             {loadingModal ? (
               <div className="flex-1 py-24 flex flex-col items-center justify-center">
-                <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
-                <span className="text-slate-400 text-xs">Memuat data review...</span>
+                <Loader2 className="w-8 h-8 text-[#224813] animate-spin mb-4" />
+                <span className="text-slate-500 text-xs font-bold">Memuat data review...</span>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Side: PDF/Image Preview */}
                 <div className="flex flex-col space-y-4">
-                  <h4 className="font-bold text-white text-xs uppercase tracking-wider">Berkas Sertifikat Asli</h4>
+                  <h4 className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Berkas Sertifikat Asli</h4>
                   
                   {signedUrl ? (
-                    <div className="border border-slate-800 rounded-2xl bg-slate-950 overflow-hidden flex-1 min-h-[350px] relative flex flex-col items-center justify-center p-6 text-center">
+                    <div className="border border-slate-200 rounded-2xl bg-slate-50 overflow-hidden flex-1 min-h-[350px] relative flex flex-col items-center justify-center p-6 text-center shadow-inner">
                       {selectedCert.file_type.startsWith('image/') ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={signedUrl} alt="Sertifikat Asli" className="object-contain max-h-[400px] w-full" />
+                        <img src={signedUrl} alt="Sertifikat Asli" className="object-contain max-h-[400px] w-full shadow-sm rounded-lg" />
                       ) : (
                         <div className="space-y-4">
-                          <div className="w-16 h-16 bg-slate-900 border border-slate-800 text-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                          <div className="w-16 h-16 bg-white border border-slate-200 text-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-md">
                             <FileText className="w-8 h-8" />
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-200 text-sm">Dokumen Format PDF</p>
-                            <p className="text-slate-500 text-xs mt-1">Pratinjau langsung tidak tersedia untuk format PDF pribadi.</p>
+                            <p className="font-bold text-slate-800 text-sm">Dokumen Format PDF</p>
+                            <p className="text-slate-500 text-xs mt-1 font-medium">Unduh untuk membaca berkas PDF secara lengkap.</p>
                           </div>
                           <a
                             href={signedUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-blue-500/10"
+                            className="inline-flex items-center gap-2 px-4.5 py-2.5 bg-[#224813] hover:bg-[#1a360f] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#224813]/10"
                           >
                             <ExternalLink className="w-4 h-4" />
-                            Buka / Unduh Berkas
+                            Unduh Dokumen
                           </a>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="border border-slate-800 border-dashed rounded-2xl p-10 text-center text-slate-650">
-                      Gagal menghasilkan tautan berkas privat.
+                    <div className="border border-slate-200 border-dashed rounded-2xl p-10 text-center text-slate-405 font-bold">
+                      Gagal memuat berkas.
                     </div>
                   )}
                 </div>
@@ -515,43 +519,43 @@ export default function LecturerDashboard() {
                 <div className="space-y-6">
                   
                   {/* Grid claims vs AI */}
-                  <div className="bg-slate-950/40 border border-slate-850 rounded-xl p-5 space-y-4">
-                    <h4 className="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-900 pb-2">Informasi Kegiatan</h4>
+                  <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
+                    <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-2">Informasi Kegiatan</h4>
                     
                     <div className="space-y-3.5 text-xs">
                       <div className="grid grid-cols-3">
-                        <span className="text-slate-500 font-semibold">Nama Berkas</span>
-                        <span className="text-slate-300 col-span-2 truncate">{selectedCert.file_name}</span>
+                        <span className="text-slate-450 font-bold uppercase text-[9px]">Nama Berkas</span>
+                        <span className="text-slate-700 col-span-2 truncate font-medium">{selectedCert.file_name}</span>
                       </div>
                       
                       <div className="grid grid-cols-3">
-                        <span className="text-slate-500 font-semibold">Judul Kegiatan</span>
-                        <span className="text-white col-span-2 font-bold">{selectedCert.title || '-'}</span>
+                        <span className="text-slate-450 font-bold uppercase text-[9px]">Judul Kegiatan</span>
+                        <span className="text-slate-900 col-span-2 font-bold">{selectedCert.title || '-'}</span>
                       </div>
                       
                       <div className="grid grid-cols-3">
-                        <span className="text-slate-500 font-semibold">Penyelenggara</span>
-                        <span className="text-slate-300 col-span-2">{selectedCert.organizer || '-'}</span>
+                        <span className="text-slate-450 font-bold uppercase text-[9px]">Penyelenggara</span>
+                        <span className="text-slate-750 col-span-2 font-medium">{selectedCert.organizer || '-'}</span>
                       </div>
 
                       <div className="grid grid-cols-3">
-                        <span className="text-slate-500 font-semibold">Kategori</span>
-                        <span className="text-slate-300 col-span-2">
-                          <span className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-bold text-blue-400">
+                        <span className="text-slate-450 font-bold uppercase text-[9px]">Kategori</span>
+                        <span className="text-slate-800 col-span-2">
+                          <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 rounded text-[9px] font-extrabold text-[#224813]">
                             {selectedCert.category || 'Belum Terdeteksi'}
                           </span>
                         </span>
                       </div>
 
                       <div className="grid grid-cols-3">
-                        <span className="text-slate-500 font-semibold">Tanggal & Durasi</span>
-                        <span className="text-slate-350 col-span-2 flex items-center gap-4">
+                        <span className="text-slate-450 font-bold uppercase text-[9px]">Tanggal & Durasi</span>
+                        <span className="text-slate-700 col-span-2 flex items-center gap-4 font-medium">
                           <span className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-slate-550" />
+                            <Calendar className="w-3.5 h-3.5 text-slate-400" />
                             {selectedCert.event_date ? selectedCert.event_date : '-'}
                           </span>
                           <span className="flex items-center gap-1">
-                            <Layers className="w-3.5 h-3.5 text-slate-550" />
+                            <Layers className="w-3.5 h-3.5 text-slate-400" />
                             {selectedCert.duration_hours ? `${selectedCert.duration_hours} Jam` : '-'}
                           </span>
                         </span>
@@ -561,26 +565,29 @@ export default function LecturerDashboard() {
 
                   {/* AI Extraction Details */}
                   {aiAnalysis && (
-                    <div className="bg-gradient-to-br from-blue-950/10 to-violet-950/10 border border-blue-900/30 rounded-xl p-5 space-y-4 shadow-lg shadow-blue-500/5">
-                      <div className="flex items-center justify-between border-b border-blue-900/20 pb-2">
-                        <h4 className="font-bold text-blue-400 text-xs uppercase tracking-wider">Hasil Analisis & Rekomendasi AI</h4>
-                        <span className="text-[9px] text-slate-550">Confidence Score: {(aiAnalysis.confidence * 100).toFixed(0)}%</span>
+                    <div className="bg-gradient-to-br from-emerald-50 to-[#224813]/5 border border-emerald-100 rounded-xl p-5 space-y-4 shadow-sm">
+                      <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
+                        <h4 className="font-bold text-[#224813] text-[10px] uppercase tracking-wider flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 fill-[#D19200] text-[#D19200]" />
+                          Hasil Analisis & Rekomendasi AI
+                        </h4>
+                        <span className="text-[9px] text-slate-500 font-bold">Confidence Score: {(aiAnalysis.confidence * 100).toFixed(0)}%</span>
                       </div>
                       
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-slate-950/50 border border-slate-850 p-2.5 rounded-lg text-center">
-                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Rekomendasi Bobot AI</p>
-                          <p className="text-2xl font-black text-white mt-0.5">{aiAnalysis.recommended_weight}</p>
+                        <div className="bg-white border border-slate-200 p-2.5 rounded-lg text-center shadow-sm">
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Rekomendasi Bobot AI</p>
+                          <p className="text-2xl font-black text-slate-900 mt-0.5">{aiAnalysis.recommended_weight}</p>
                         </div>
-                        <div className="bg-slate-950/50 border border-slate-850 p-2.5 rounded-lg text-center">
-                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">Model AI</p>
-                          <p className="text-xs font-bold text-slate-300 mt-2">{aiAnalysis.model_name}</p>
+                        <div className="bg-white border border-slate-200 p-2.5 rounded-lg text-center shadow-sm">
+                          <p className="text-[9px] text-slate-500 uppercase tracking-wider font-extrabold">Model AI</p>
+                          <p className="text-xs font-bold text-slate-700 mt-2">{aiAnalysis.model_name}</p>
                         </div>
                       </div>
 
                       <div className="text-xs space-y-1.5">
-                        <span className="text-slate-500 font-semibold block">Justifikasi / Alasan AI:</span>
-                        <p className="p-3 bg-slate-950/50 border border-slate-850/80 rounded-xl text-slate-300 leading-relaxed text-[11px]">
+                        <span className="text-slate-500 font-bold uppercase text-[9px] block">Justifikasi AI:</span>
+                        <p className="p-3 bg-white border border-slate-200 rounded-xl text-slate-650 leading-relaxed text-[11px] font-medium shadow-sm">
                           {aiAnalysis.reasoning}
                         </p>
                       </div>
@@ -589,11 +596,11 @@ export default function LecturerDashboard() {
 
                   {/* Review Actions Form */}
                   {selectedCert.status === 'waiting_review' ? (
-                    <div className="bg-slate-950/40 border border-slate-850 rounded-xl p-5 space-y-4">
-                      <h4 className="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-900 pb-2">Form Evaluasi Dosen</h4>
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
+                      <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-2">Form Evaluasi Dosen</h4>
                       
                       {reviewError && (
-                        <div className="p-3 bg-red-950/40 border border-red-800/50 text-red-400 text-xs rounded-xl">
+                        <div className="p-3 bg-red-50 border border-red-250 text-red-700 text-xs font-semibold rounded-xl">
                           {reviewError}
                         </div>
                       )}
@@ -601,8 +608,8 @@ export default function LecturerDashboard() {
                       <div className="space-y-4">
                         {/* Weight input */}
                         <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                            Tentukan Bobot Akhir
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            Tentukan Bobot Akhir (0-10)
                           </label>
                           <input
                             type="number"
@@ -611,21 +618,21 @@ export default function LecturerDashboard() {
                             max="10"
                             value={finalWeight}
                             onChange={(e) => setFinalWeight(Number(e.target.value))}
-                            className="w-full max-w-[150px] px-3.5 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-blue-500 text-sm font-extrabold"
+                            className="w-full max-w-[150px] px-3.5 py-2.5 bg-white border border-slate-250 rounded-xl text-slate-900 focus:outline-none focus:border-[#224813] text-sm font-extrabold"
                           />
                         </div>
 
                         {/* Note textarea */}
                         <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                            Catatan Review / Umpan Balik
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                            Catatan Review / Umpan Balik Mahasiswa
                           </label>
                           <textarea
-                            placeholder="Tulis umpan balik Anda untuk mahasiswa..."
+                            placeholder="Tulis umpan balik verifikasi..."
                             value={reviewNote}
                             onChange={(e) => setReviewNote(e.target.value)}
                             rows={3}
-                            className="w-full p-3 bg-slate-900 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-xs leading-relaxed"
+                            className="w-full p-3 bg-white border border-slate-250 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#224813] text-xs leading-relaxed font-medium"
                           />
                         </div>
 
@@ -635,7 +642,7 @@ export default function LecturerDashboard() {
                             type="button"
                             onClick={() => submitReview('rejected')}
                             disabled={submittingReview}
-                            className="py-3 border border-red-900/40 bg-red-950/10 hover:bg-red-950/20 text-red-400 hover:text-red-300 font-bold rounded-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-xs"
+                            className="py-3 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-100 text-red-750 font-bold rounded-xl active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-xs cursor-pointer shadow-sm duration-300"
                           >
                             <ThumbsDown className="w-4 h-4" />
                             Tolak Sertifikat
@@ -645,7 +652,7 @@ export default function LecturerDashboard() {
                             type="button"
                             onClick={() => submitReview('approved')}
                             disabled={submittingReview}
-                            className="py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-xs"
+                            className="py-3 bg-gradient-to-r from-[#224813] to-emerald-700 hover:from-[#1a360f] hover:to-emerald-800 text-white font-bold rounded-xl shadow-md shadow-[#224813]/10 active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-xs cursor-pointer duration-300"
                           >
                             <ThumbsUp className="w-4 h-4" />
                             Setujui Sertifikat
@@ -655,25 +662,25 @@ export default function LecturerDashboard() {
                     </div>
                   ) : (
                     // Show history details
-                    <div className="bg-slate-950/40 border border-slate-850 rounded-xl p-5 space-y-4">
-                      <h4 className="font-bold text-white text-xs uppercase tracking-wider border-b border-slate-900 pb-2">Keputusan Review Anda</h4>
+                    <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-sm">
+                      <h4 className="font-bold text-slate-900 text-[10px] uppercase tracking-wider border-b border-slate-100 pb-2">Keputusan Review Anda</h4>
                       
                       <div className="text-xs space-y-3.5">
                         <div className="grid grid-cols-3">
-                          <span className="text-slate-500 font-semibold">Keputusan</span>
-                          <span className={`font-bold ${selectedCert.status === 'approved' ? 'text-emerald-400' : 'text-red-400'}`}>
+                          <span className="text-slate-450 font-bold uppercase text-[9px]">Keputusan</span>
+                          <span className={`font-bold ${selectedCert.status === 'approved' ? 'text-emerald-700' : 'text-red-750'}`}>
                             {selectedCert.status === 'approved' ? 'Disetujui' : 'Ditolak'}
                           </span>
                         </div>
                         
                         <div className="grid grid-cols-3">
-                          <span className="text-slate-500 font-semibold">Bobot Akhir</span>
-                          <span className="text-white font-black">{selectedCert.final_weight}</span>
+                          <span className="text-slate-450 font-bold uppercase text-[9px]">Bobot Akhir</span>
+                          <span className="text-slate-900 font-black text-sm">{selectedCert.final_weight}</span>
                         </div>
 
                         <div className="space-y-1">
-                          <span className="text-slate-500 font-semibold block">Catatan Verifikator:</span>
-                          <p className="p-3 bg-slate-900 border border-slate-800 rounded-xl text-slate-300 leading-relaxed text-[11px] italic">
+                          <span className="text-slate-450 font-bold uppercase text-[9px] block">Catatan Verifikator:</span>
+                          <p className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-650 leading-relaxed text-[11px] italic font-medium">
                             {selectedCert.status === 'approved' ? (selectedCert.final_weight !== (aiAnalysis?.recommended_weight ?? -1) ? 'Disetujui dengan penyesuaian bobot.' : 'Disetujui sesuai rekomendasi AI.') : 'Sertifikat tidak memenuhi kriteria verifikasi.'}
                           </p>
                         </div>
