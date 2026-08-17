@@ -1,116 +1,300 @@
+'use client';
+
 import Link from 'next/link';
-import { Award, ArrowRight, ShieldCheck, Cpu, Zap, Star } from 'lucide-react';
+import { Award, Upload, CheckCircle, FileText, Clock, User, BookOpen, Shield, Star, ArrowRight } from 'lucide-react';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col justify-between relative overflow-hidden">
-      {/* Background radial glow */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-[#224813]/5 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-emerald-600/5 blur-[150px] pointer-events-none" />
-
+    <div className="min-h-screen bg-white text-slate-800 flex flex-col font-sans">
       {/* HEADER */}
-      <header className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#224813] to-emerald-600 flex items-center justify-center shadow-md shadow-emerald-700/10 hover:scale-105 transition-transform duration-300">
-            <Award className="w-5 h-5 text-white" />
+      <header className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-[#059669] flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300">
+            <Award className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-black tracking-tight text-slate-900">Certi<span className="text-[#224813]">AI</span></span>
-            <span className="text-[9px] font-bold text-slate-500 tracking-widest uppercase -mt-1">UIN SU MEDAN</span>
+            <span className="text-xl font-bold tracking-tight text-slate-900">Certi<span className="text-[#059669]">AI</span></span>
+            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">UIN SU Medan</span>
           </div>
-        </div>
+        </Link>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="text-xs font-semibold text-slate-600 hover:text-[#224813] transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold text-[#059669] hover:text-[#047857] transition-colors"
           >
             Masuk
           </Link>
           <Link
             href="/register"
-            className="px-5 py-2.5 bg-[#224813] hover:bg-[#1a360f] text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-[#224813]/10 hover:shadow-[#224813]/25 active:scale-[0.98] duration-300"
+            className="px-5 py-2.5 bg-[#059669] hover:bg-[#047857] text-white rounded-lg text-sm font-semibold transition-all shadow-md shadow-[#059669]/15 active:scale-[0.98] flex items-center gap-2"
           >
             Daftar
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </header>
 
-      {/* HERO SECTION */}
-      <main className="max-w-4xl w-full mx-auto px-4 sm:px-6 py-16 text-center space-y-8 relative z-10 flex-1 flex flex-col justify-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-[10px] font-extrabold text-[#224813] tracking-wider uppercase mx-auto shadow-sm">
-          <Star className="w-3.5 h-3.5 fill-[#D19200] text-[#D19200]" />
-          AI-Assisted Certificate Review System
-        </div>
+      {/* HERO */}
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="text-center space-y-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-100 rounded-full text-xs font-bold text-[#059669] uppercase tracking-wider">
+            <Star className="w-4 h-4 fill-[#F59E0B] text-[#F59E0B]" />
+            Sistem Verifikasi Sertifikat Berbasis AI
+          </div>
 
-        <div className="space-y-4">
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 leading-none">
-            Verifikasi Sertifikat Anda <br />
-            <span className="bg-gradient-to-r from-[#224813] via-emerald-700 to-[#D19200] bg-clip-text text-transparent">
-              Lebih Cepat & Akurat Dengan AI
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.1]">
+            Verifikasi Sertifikat <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#059669] to-[#10B981]">
+              Lebih Cepat & Akurat
             </span>
           </h1>
-          <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-medium">
-            CertiAI menggunakan kecerdasan buatan untuk membaca, mengekstrak data kegiatan, dan merekomendasikan bobot sertifikat mahasiswa UINSU secara instan dan aman.
-          </p>
-        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link
-            href="/register"
-            className="px-7 py-3.5 bg-gradient-to-r from-[#224813] to-emerald-700 hover:from-[#1b3a0f] hover:to-emerald-800 text-white font-bold rounded-xl shadow-lg shadow-emerald-850/15 hover:shadow-emerald-850/25 transition-all duration-300 flex items-center gap-2 text-sm w-full sm:w-auto justify-center active:scale-[0.99]"
-          >
-            Mulai Sekarang
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link
-            href="/login"
-            className="px-7 py-3.5 border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 hover:text-[#224813] hover:border-[#224813]/20 font-bold rounded-xl transition-all duration-300 text-sm w-full sm:w-auto justify-center flex items-center shadow-sm"
-          >
-            Masuk Ke Akun
-          </Link>
+          <p className="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Upload sertifikat kegiatan mahasiswa UINSU. AI kami akan menganalisis,
+            mengekstrak informasi, dan merekomendasikan bobot — semua dalam hitungan detik.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+            <Link
+              href="/register"
+              className="px-8 py-4 bg-[#059669] hover:bg-[#047857] text-white rounded-xl text-lg font-bold transition-all shadow-lg shadow-[#059669]/20 hover:shadow-[#059669]/30 active:scale-[0.98] flex items-center justify-center gap-2"
+            >
+              Mulai Sekarang
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="px-8 py-4 bg-white border border-slate-200 hover:border-[#059669] text-slate-700 hover:text-[#059669] rounded-xl text-lg font-semibold transition-all active:scale-[0.98]"
+            >
+              Pelajari Cara Kerja
+            </Link>
+          </div>
         </div>
 
         {/* FEATURES GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-16 text-left">
-          <div className="p-6 bg-white border border-slate-150 rounded-2xl space-y-3 shadow-sm hover:shadow-md hover:border-emerald-600/20 hover:-translate-y-1 transition-all duration-300">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-[#224813] flex items-center justify-center">
-              <Cpu className="w-5 h-5" />
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="p-8 bg-white border border-slate-200 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+            <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#059669] transition-colors duration-300">
+              <Upload className="w-7 h-7 text-[#059669] group-hover:text-white" />
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm">Ekstraksi Instan</h3>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
-              AI membaca file PDF atau Gambar secara otomatis untuk mengambil nama, kategori, tanggal, dan durasi kegiatan.
+            <h3 className="text-xl font-bold text-slate-900 mb-3">Upload Sertifikat</h3>
+            <p className="text-slate-600 leading-relaxed">
+              Seret dan lepas file PDF atau gambar sertifikat. Sistem akan menyimpannya secara aman di storage privat.
             </p>
           </div>
 
-          <div className="p-6 bg-white border border-slate-150 rounded-2xl space-y-3 shadow-sm hover:shadow-md hover:border-emerald-600/20 hover:-translate-y-1 transition-all duration-300">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-[#224813] flex items-center justify-center">
-              <Zap className="w-5 h-5" />
+          <div className="p-8 bg-white border border-slate-200 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+            <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#059669] transition-colors duration-300">
+              <FileText className="w-7 h-7 text-[#059669] group-hover:text-white" />
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm">Rekomendasi Bobot</h3>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
-              Sistem mencocokkan parameter sertifikat dengan aturan pembobotan akademik UINSU secara langsung untuk merekomendasikan poin bobot.
+            <h3 className="text-xl font-bold text-slate-900 mb-3">AI Menganalisis</h3>
+            <p className="text-slate-600 leading-relaxed">
+              Gemini AI membaca dan mengekstrak informasi kegiatan, kategori, dan menghitung bobot yang sesuai.
             </p>
           </div>
 
-          <div className="p-6 bg-white border border-slate-150 rounded-2xl space-y-3 shadow-sm hover:shadow-md hover:border-emerald-600/20 hover:-translate-y-1 transition-all duration-300">
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-[#224813] flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="p-8 bg-white border border-slate-200 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group">
+            <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#059669] transition-colors duration-300">
+              <CheckCircle className="w-7 h-7 text-[#059669] group-hover:text-white" />
             </div>
-            <h3 className="font-extrabold text-slate-900 text-sm">Verifikasi Dosen</h3>
-            <p className="text-slate-500 text-xs leading-relaxed font-medium">
-              Kecerdasan Buatan (AI) hanya merekomendasikan. Persetujuan dan keputusan final ada pada dosen verifikator.
+            <h3 className="text-xl font-bold text-slate-900 mb-3">Dosen Memverifikasi</h3>
+            <p className="text-slate-600 leading-relaxed">
+              Dosen review hasil AI, menyesuaikan bobot, dan memberikan keputusan akhir — keamanan terjaga.
             </p>
           </div>
         </div>
+
+        {/* HOW IT WORKS */}
+        <section id="how-it-works" className="mt-28">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">Tata Cara Penggunaan</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto">
+              Panduan lengkap untuk mahasiswa dan dosen dalam menggunakan sistem CertiAI
+            </p>
+          </div>
+
+          {/* STUDENT GUIDE */}
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden mb-12">
+            <div className="bg-[#059669] p-6 flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-xl">
+                <BookOpen className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Untuk Mahasiswa</h3>
+                <p className="text-green-100">Upload sertifikat, cek status, dan lihat hasil verifikasi</p>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">1</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Daftar Akun</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Klik tombol "Daftar" di header. Pilih role sebagai Mahasiswa, isi NIM, nama lengkap, dan email UINSU. Buat password dan selesaikan pendaftaran.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">2</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Login ke Dashboard</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Masukkan email dan password yang telah didaftarkan. Klik "Masuk" untuk masuk ke dashboard mahasiswa.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">3</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Upload Sertifikat</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Di dashboard, temukan area drag & drop untuk mengupload sertifikat. Format yang didukung: PDF, JPG, JPEG, PNG (maks. 10MB). Anda bisa seret file atau klik untuk memilih.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">4</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Monitor Status</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Setelah upload, sistem akan memproses sertifikat melalui AI. Status akan berubah: Mengantri → Dianalisis AI → Menunggu Dosen → Disetujui/Ditolak. Periksa notifikasi untuk update.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">5</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Lihat Hasil</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Klik "Detail" pada sertifikat untuk melihat hasil analisis AI, bobot yang direkomendasikan, dan keputusan akhir dosen. Jika disetujui, bobot akhir akan tercatat.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* LECTURER GUIDE */}
+          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden">
+            <div className="bg-[#059669] p-6 flex items-center gap-4">
+              <div className="bg-white/20 p-3 rounded-xl">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white">Untuk Dosen</h3>
+                <p className="text-green-100">Review sertifikat mahasiswa, berikan bobot akhir, dan verifikasi keputusan</p>
+              </div>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">1</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Daftar / Login sebagai Dosen</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Saat registrasi, pilih role sebagai Dosen dan isi NIDN Anda. Setelah akun dibuat, login dengan email dan password yang didaftarkan.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">2</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Akses Dashboard Dosen</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Setelah login, Anda akan langsung mengakses dashboard dosen yang menampilkan daftar sertifikat menunggu verifikasi.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">3</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Review Sertifikat</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Klik tombol "Review" pada sertifikat yang menunggu. Anda dapat melihat berkas asli (PDF/gambar), informasi ekstraksi AI, dan rekomendasi bobot.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">4</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Berikan Keputusan</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Review hasil AI. Anda dapat menyesuaikan bobot jika diperlukan, menambahkan catatan untuk mahasiswa, lalu memilih "Setujui" atau "Tolak" sertifikat.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-6">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#059669] text-white flex items-center justify-center font-bold text-lg">5</div>
+                <div className="flex-1">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2">Mahasiswa Menerima Notifikasi</h4>
+                  <p className="text-slate-600 leading-relaxed">
+                    Setelah Anda menyetujui atau menolak sertifikat, mahasiswa akan langsung menerima notifikasi dan dapat melihat hasil verifikasi di dashboard mereka.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* INFO CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-16">
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Clock className="w-6 h-6 text-[#059669]" />
+              </div>
+              <h4 className="font-bold text-[#059669] mb-2">Proses Cepat</h4>
+              <p className="text-sm text-slate-600">AI menganalisis sertifikat dalam hitungan detik.</p>
+            </div>
+
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-6 h-6 text-[#059669]" />
+              </div>
+              <h4 className="font-bold text-[#059669] mb-2">Data Aman</h4>
+              <p className="text-sm text-slate-600">File disimpan di storage privat, hanya bisa diakses pihak berwenang.</p>
+            </div>
+
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-6 h-6 text-[#059669]" />
+              </div>
+              <h4 className="font-bold text-[#059669] mb-2">Review Manusia</h4>
+              <p className="text-sm text-slate-600">Keputusan akhir tetap berada pada dosen, bukan AI.</p>
+            </div>
+
+            <div className="bg-green-50 border border-green-100 rounded-2xl p-6 text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Award className="w-6 h-6 text-[#059669]" />
+              </div>
+              <h4 className="font-bold text-[#059669] mb-2">Rekomendasi Bobot</h4>
+              <p className="text-sm text-slate-600">AI memberikan rekomendasi bobot sesuai aturan UINSU.</p>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-200/60 bg-white py-6 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© 2026 CertiAI. Universitas Islam Negeri Sumatera Utara Medan.</p>
-          <div className="flex gap-4 font-semibold">
-            <span className="text-[#224813]">AI assists. Human decides.</span>
+      <footer className="border-t border-slate-200 bg-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#059669] flex items-center justify-center">
+                <Award className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-bold text-slate-900">Certi<span className="text-[#059669]">AI</span> UINSU</span>
+            </div>
+            <p className="text-slate-500 text-sm">
+              © 2026 CertiAI. Universitas Islam Negeri Sumatera Utara Medan. <br className="md:hidden" />
+              AI assists. Human decides.
+            </p>
           </div>
         </div>
       </footer>

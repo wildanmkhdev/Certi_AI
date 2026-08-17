@@ -1,20 +1,16 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "CertiAI - AI Certificate Review System",
-  description: "Sistem Verifikasi Sertifikat Mahasiswa Berbasis AI",
+  title: "CertiAI - AI Certificate Review System UINSU",
+  description: "Sistem verifikasi sertifikat mahasiswa berbasis AI untuk UIN Sumatera Utara Medan. Upload, analisis AI, dan verifikasi dosen dalam satu platform.",
 };
 
 export default function RootLayout({
@@ -25,9 +21,9 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased font-sans`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">{children}</body>
+      <body className="min-h-full flex flex-col bg-white text-slate-900 font-sans antialiased">{children}</body>
     </html>
   );
 }
