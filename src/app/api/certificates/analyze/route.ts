@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       process.env.GEMINI_API_KEY === '';
 
     let parsedResult;
-    let modelName = isMock ? 'mock-ai-fallback' : 'gemini-1.5-flash';
+    const modelName = isMock ? 'mock-ai-fallback' : 'gemini-1.5-flash';
 
     if (isMock) {
       console.log('Running AI extraction with Mock Fallback (GEMINI_API_KEY not configured)...');
@@ -220,8 +220,10 @@ Struktur JSON yang WAJIB dihasilkan:
       message: 'AI analysis completed successfully',
       data: parsedResult,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('AI Analysis Error:', error);
+
+    const message = error instanceof Error ? error.message : 'An error occurred during AI processing';
 
     // Rollback status to pending on error so it can be re-tried
     try {
@@ -232,12 +234,12 @@ Struktur JSON yang WAJIB dihasilkan:
           .update({ status: 'pending', updated_at: new Date().toISOString() })
           .eq('id', body.certificateId);
       }
-    } catch (e) {
+    } catch {
       // Ignore body parsing failures in rollback catch
     }
 
     return NextResponse.json(
-      { error: error.message || 'An error occurred during AI processing' },
+      { error: message },
       { status: 500 }
     );
   }

@@ -1,19 +1,257 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================
+   DESIGN SYSTEM - CertiAI UINSU
+   Warna: Hijau UINSU + Putih Bersih
+   ============================================ */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #ffffff;
-    --foreground: #171717;
+@theme {
+  /* Brand Colors - UINSU Green */
+  --color-uinsu-primary: #224813;        /* Hijau UINSU Official */
+  --color-uinsu-light: #4caf50;          /* Hijau Terang */
+  --color-uinsu-dark: #1b5e20;           /* Hijau Gelap */
+  --color-uinsu-surface: #e8f5e9;        /* Hijau Surface */
+
+  /* Fonts */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Lexend', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-fade-in-scale: fade-in-scale 0.3s ease-out both;
+  --animate-slide-in-right: slide-in-right 0.4s ease-out both;
+  --animate-slide-in-left: slide-in-left 0.4s ease-out both;
+  --animate-slide-in-up: slide-in-up 0.5s ease-out both;
+  --animate-bounce-subtle: bounce-subtle 2s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  /* Keyframes */
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-in-scale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes slide-in-right {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slide-in-left {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slide-in-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(34 72 19 / 0.4); }
+    50% { box-shadow: 0 0 0 10px rgb(34 72 19 / 0); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-gray-900 antialiased;
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply font-bold tracking-tight;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400;
+  }
+
+  ::selection {
+    @apply bg-uinsu-surface text-uinsu-dark;
+  }
 }
+
+/* ============================================
+   CUSTOM UTILITIES
+   ============================================ */
+
+@utility glass {
+  @apply bg-white/80 backdrop-blur-md border border-gray-200/50;
+}
+
+@utility glass-green {
+  @apply bg-uinsu-surface/80 backdrop-blur-md border border-uinsu-light/30;
+}
+
+@utility text-gradient {
+  @apply bg-gradient-to-r from-uinsu-dark to-uinsu-light bg-clip-text text-transparent;
+}
+
+@utility bg-gradient-primary {
+  background: linear-gradient(135deg, #224813 0%, #4caf50 100%);
+}
+
+@utility shadow-green {
+  box-shadow: 0 10px 25px -5px rgb(34 72 19 / 0.25);
+}
+
+@utility hover-lift {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+}
+
+@utility interactive-scale {
+  @apply transition-transform duration-200 active:scale-95;
+}
+
+@utility skeleton {
+  @apply animate-shimmer bg-gray-100 rounded;
+}
+
+@utility badge {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+}
+
+@utility badge-success {
+  @apply bg-green-50 text-green-700 border border-green-200;
+}
+
+@utility badge-warning {
+  @apply bg-amber-50 text-amber-700 border border-amber-200;
+}
+
+@utility badge-error {
+  @apply bg-red-50 text-red-700 border border-red-200;
+}
+
+@utility badge-info {
+  @apply bg-blue-50 text-blue-700 border border-blue-200;
+}
+
+@utility badge-uinsu {
+  @apply bg-uinsu-surface text-uinsu-dark border border-uinsu-light/30;
+}
+
+@utility card {
+  @apply bg-white border border-gray-200 rounded-2xl shadow-sm;
+}
+
+@utility card-hover {
+  @apply card transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+}
+
+@utility card-interactive {
+  @apply card-hover cursor-pointer active:scale-[0.98];
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@utility btn-primary {
+  @apply btn bg-uinsu-primary text-white hover:bg-uinsu-dark shadow-md shadow-uinsu-primary/20 hover:shadow-lg hover:shadow-uinsu-primary/30 active:scale-95;
+}
+
+@utility btn-secondary {
+  @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95;
+}
+
+@utility btn-ghost {
+  @apply btn bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+}
+
+@utility btn-success {
+  @apply btn bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-500/20;
+}
+
+@utility btn-danger {
+  @apply btn bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20;
+}
+
+@utility input {
+  @apply w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:border-uinsu-primary focus:ring-2 focus:ring-uinsu-primary/20;
+}
+
+@utility input-error {
+  @apply input border-red-300 focus:border-red-500 focus:ring-red-500/20;
+}
+
+@utility modal-backdrop {
+  @apply fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[1040];
+}
+
+@utility dropdown-menu {
+  @apply bg-white border border-gray-200 rounded-2xl shadow-xl py-2 min-w-[200px];
+}
+
+@utility dropdown-item {
+  @apply flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer;
+}
+
+@utility status-pending {
+  @apply badge bg-gray-50 text-gray-600 border-gray-200;
+}
+
+@utility status-processing {
+  @apply badge bg-blue-50 text-blue-700 border-blue-200 animate-pulse;
+}
+
+@utility status-waiting {
+  @apply badge bg-amber-50 text-amber-700 border-amber-200;
+}
+
+@utility status-approved {
+  @apply badge bg-green-50 text-green-700 border-green-200;
+}
+
+@utility status-rejected {
+  @apply badge bg-red-50 text-red-700 border-red-200;
+}
+
+/* Animation delay helpers (compose with animate-*) */
+@utility delay-anim-100 { animation-delay: 100ms; }
+@utility delay-anim-200 { animation-delay: 200ms; }
+@utility delay-anim-300 { animation-delay: 300ms; }
+@utility delay-anim-500 { animation-delay: 500ms; }

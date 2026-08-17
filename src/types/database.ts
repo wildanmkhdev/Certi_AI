@@ -96,7 +96,7 @@ export interface AuditLog {
   action: string;
   entity: string;
   entity_id: string | null;
-  old_data: any | null;
-  new_data: any | null;
+  old_data: Record<string, unknown> | null;
+  new_data: Record<string, unknown> | null;
   created_at: string;
 }
