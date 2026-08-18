@@ -239,12 +239,15 @@ Hanya kembalikan JSON yang valid tanpa teks tambahan.`;
     // If Gemini API fails (quota, rate limit, timeout, etc), fallback to mock
     console.error('[Pipeline] Gemini API Error:', apiError?.message || apiError);
     if (
+      apiError?.status === 403 || 
       apiError?.status === 429 || 
       apiError?.status === 503 || 
+      apiError?.message?.includes('leaked') ||
+      apiError?.message?.includes('PERMISSION_DENIED') ||
       apiError?.message?.includes('quota') ||
       apiError?.message?.includes('timeout')
     ) {
-      console.warn('[Pipeline] API error (quota/timeout/unavailable), using MOCK fallback');
+      console.warn('[Pipeline] API error (403/429/503/quota/timeout/leaked key), using MOCK fallback');
       return mockPipeline(cert.file_name);
     }
     throw apiError;

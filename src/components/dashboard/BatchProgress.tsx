@@ -154,7 +154,12 @@ export function BatchProgress({ batchId, onComplete, onDismiss }: BatchProgressP
     if (isDone || !batch) return; // Don't poll when done
 
     const triggerWorker = () => {
-      fetch('/api/worker', { method: 'GET' })
+      fetch('/api/worker', {
+        method: 'GET',
+        headers: {
+          'x-cron-secret': process.env.NEXT_PUBLIC_CRON_SECRET || '',
+        },
+      })
         .catch(() => {/* silent fail — worker is optional trigger */});
     };
 
