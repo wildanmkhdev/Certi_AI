@@ -139,9 +139,11 @@ export async function runPipeline(
 
   console.log(`[Pipeline] Single-Pass Gemini 3.6 Flash starting for: ${cert.file_name}`);
 
-  // Set a timeout promise (9 minutes max for Gemini call)
+  // Set a timeout promise. Must stay BELOW Vercel's maxDuration (300s)
+  // so the mock fallback always runs before the function is killed.
+  // 240s = 4 minutes.
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error('Gemini API timeout after 9 minutes')), 9 * 60 * 1000);
+    setTimeout(() => reject(new Error('Gemini API timeout after 4 minutes')), 240 * 1000);
   });
 
   // 4. Download file
