@@ -6,7 +6,22 @@ export type CertificateStatus =
   | 'ai_completed'
   | 'waiting_review'
   | 'approved'
-  | 'rejected';
+  | 'rejected'
+  | 'failed';
+
+export type BatchStatus =
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'partial'
+  | 'failed';
+
+export type JobStatus =
+  | 'queued'
+  | 'processing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
 
 export interface Profile {
   id: string; // references auth.users.id
@@ -34,6 +49,38 @@ export interface Certificate {
   duration_hours: number | null;
   certificate_number: string | null;
   final_weight: number | null;
+  batch_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReviewBatch {
+  id: string;
+  student_id: string;
+  total_certificates: number;
+  completed_count: number;
+  processing_count: number;
+  queued_count: number;
+  failed_count: number;
+  status: BatchStatus;
+  avg_processing_ms: number | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface ReviewJob {
+  id: string;
+  batch_id: string;
+  certificate_id: string;
+  status: JobStatus;
+  priority: number;
+  attempts: number;
+  max_attempts: number;
+  started_at: string | null;
+  completed_at: string | null;
+  processing_time_ms: number | null;
+  error_message: string | null;
   created_at: string;
   updated_at: string;
 }

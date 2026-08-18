@@ -40,41 +40,52 @@ export function CertificateCard({
       </div>
 
       {/* Details */}
-      {certificate.category && (
-        <div className="space-y-2 text-sm">
+      <div className="space-y-2 text-sm">
+        {certificate.category && (
           <div className="flex items-center justify-between">
-            <span className="text-gray-500">Kategori</span>
+            <span className="text-gray-500">Kategori AI</span>
             <span className="badge-uinsu text-xs">{certificate.category}</span>
           </div>
+        )}
 
-          {certificate.event_date && (
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" />
-                Tanggal
-              </span>
-              <span className="font-medium text-gray-900">{formatDate(certificate.event_date)}</span>
-            </div>
-          )}
+        {certificate.event_date && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-500 flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              Tanggal
+            </span>
+            <span className="font-medium text-gray-900">{formatDate(certificate.event_date)}</span>
+          </div>
+        )}
 
-          {certificate.duration_hours && (
-            <div className="flex items-center justify-between">
-              <span className="text-gray-500 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5" />
-                Durasi
-              </span>
-              <span className="font-medium text-gray-900">{certificate.duration_hours} Jam</span>
-            </div>
-          )}
+        {certificate.duration_hours && (
+          <div className="flex items-center justify-between">
+            <span className="text-gray-500 flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5" />
+              Durasi
+            </span>
+            <span className="font-medium text-gray-900">{certificate.duration_hours} Jam</span>
+          </div>
+        )}
 
-          {certificate.status === 'approved' && certificate.final_weight !== null && (
-            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-              <span className="text-gray-500 font-semibold">Bobot Akhir</span>
-              <span className="text-2xl font-black text-[rgb(34_72_19)]">{certificate.final_weight}</span>
+        {certificate.status === 'approved' && certificate.final_weight !== null && (
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <span className="text-gray-500 font-semibold">Bobot Disetujui</span>
+            <span className="text-2xl font-black text-[rgb(34_72_19)]">{certificate.final_weight}</span>
+          </div>
+        )}
+
+        {certificate.status === 'waiting_review' && (
+          <div className="bg-[rgb(232_245_233)]/60 border border-[rgb(76_175_80)]/30 rounded-xl p-2.5 flex items-center justify-between mt-2">
+            <div className="flex items-center gap-1.5 text-xs text-[rgb(34_72_19)] font-bold">
+              <span>✨ Hasil Ekstraksi AI Selesai</span>
             </div>
-          )}
-        </div>
-      )}
+            <span className="text-xs font-extrabold bg-white px-2 py-0.5 rounded-md border border-[rgb(76_175_80)]/30 text-gray-800">
+              Siap Direview Dosen
+            </span>
+          </div>
+        )}
+      </div>
 
       {/* Actions */}
       {showActions && (

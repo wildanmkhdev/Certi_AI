@@ -56,6 +56,7 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
     waiting_review: { label: 'Menunggu Dosen', variant: 'warning' },
     approved: { label: 'Disetujui', variant: 'success' },
     rejected: { label: 'Ditolak', variant: 'error' },
+    failed: { label: 'Gagal Analisis', variant: 'error' },
   };
   
   const config = statusConfig[status];

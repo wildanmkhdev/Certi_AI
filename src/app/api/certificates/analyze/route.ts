@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       process.env.GEMINI_API_KEY === '';
 
     let parsedResult;
-    const modelName = isMock ? 'mock-ai-fallback' : 'gemini-1.5-flash';
+    const modelName = isMock ? 'mock-ai-fallback' : 'gemini-3.6-flash';
 
     if (isMock) {
       console.log('Running AI extraction with Mock Fallback (GEMINI_API_KEY not configured)...');
@@ -150,30 +150,68 @@ Struktur JSON yang WAJIB dihasilkan:
 `;
 
       // 5. Invoke Gemini API
-      const geminiResponse = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
-        contents: [
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType: fileMimeType,
+      try {
+        const geminiResponse = await ai.models.generateContent({
+          model: 'gemini-3.6-flash',
+          contents: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: fileMimeType,
+              },
             },
+            promptText,
+          ],
+          config: {
+            responseMimeType: 'application/json',
           },
-          promptText,
-        ],
-        config: {
-          responseMimeType: 'application/json',
-        },
-      });
+        });
 
-      const responseText = geminiResponse.text;
-      if (!responseText) {
-        throw new Error('Gemini API returned an empty response');
+        const responseText = geminiResponse.text;
+        if (!responseText) {
+          throw new Error('Gemini API returned an empty response');
+        }
+
+        // Parse and validate with Zod
+        const jsonOutput = JSON.parse(responseText.trim());
+        parsedResult = analysisSchema.parse(jsonOutput);
+      } catch (apiError: any) {
+        // If quota exceeded or API error, fallback to mock mode
+        console.error('[API] Gemini API Error:', apiError?.message || apiError);
+        if (apiError?.status === 429 || apiError?.message?.includes('quota')) {
+          console.warn('[API] Quota exceeded, using mock fallback');
+          // Use mock data from filename
+          const filenameLower = certificate.file_name.toLowerCase();
+          let category = 'Seminar';
+          let duration = 2;
+          let weight = 1;
+          let title = 'Seminar Nasional Teknologi Informasi';
+          let organizer = 'Universitas Terbuka';
+          let reasoning = 'Mock AI: Quota exceeded - Mendeteksi format sertifikat seminar.';
+
+          if (filenameLower.includes('work') || filenameLower.includes('workshop')) {
+            category = 'Workshop';
+            duration = 8;
+            weight = 1;
+            title = 'Workshop Pembangunan Web Modern';
+            organizer = 'Developer Circle';
+            reasoning = 'Mock AI: Quota exceeded - Mendeteksi kata "workshop" dalam nama berkas.';
+          }
+
+          parsedResult = {
+            title,
+            organizer,
+            category,
+            event_date: new Date().toISOString().split('T')[0],
+            duration_hours: duration,
+            recommended_weight: weight,
+            confidence: 0.85,
+            reasoning,
+          };
+        } else {
+          throw apiError;
+        }
       }
-
-      // Parse and validate with Zod
-      const jsonOutput = JSON.parse(responseText.trim());
-      parsedResult = analysisSchema.parse(jsonOutput);
     }
 
     // 6. Save AI results into DB

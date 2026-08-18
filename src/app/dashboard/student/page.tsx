@@ -23,6 +23,7 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { UploadZone } from '@/components/dashboard/UploadZone';
 import { CertificateCard } from '@/components/dashboard/CertificateCard';
+import { BatchProgress } from '@/components/dashboard/BatchProgress';
 import { Button, Input, Modal, Badge, Skeleton } from '@/components/ui';
 
 export default function StudentDashboard() {
@@ -35,6 +36,9 @@ export default function StudentDashboard() {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Batch progress state
+  const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
 
   // Detail Modal states
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
@@ -86,53 +90,82 @@ export default function StudentDashboard() {
   useEffect(() => {
     fetchUserData();
 
-    const interval = setInterval(() => {
-      fetchCertificates();
-    }, 8000);
+    // Subscribe to realtime certificate changes (replaces polling interval)
+    let userId: string | undefined;
+    supabase.auth.getUser().then(({ data }) => {
+      userId = data.user?.id;
+      if (!userId) return;
 
-    return () => clearInterval(interval);
-  }, [fetchUserData, fetchCertificates]);
+      const channel = supabase
+        .channel('student-certificates-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'certificates',
+            filter: `student_id=eq.${userId}`,
+          },
+          () => fetchCertificates(userId)
+        )
+        .subscribe();
 
-  const handleUpload = async (file: File) => {
+      return () => { supabase.removeChannel(channel); };
+    });
+  }, [fetchUserData, fetchCertificates, supabase]);
+
+  const handleBatchUpload = async (files: File[]) => {
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Session tidak ditemukan');
 
-      const certificateId = crypto.randomUUID();
-      const filePath = `${user.id}/${certificateId}/${file.name}`;
+      // 1. Upload all files to Supabase Storage first
+      const uploadedCerts: Array<{
+        id: string;
+        file_name: string;
+        file_type: string;
+        file_size: number;
+        file_path: string;
+      }> = [];
 
-      const { error: uploadStorageError } = await supabase.storage
-        .from('certificates')
-        .upload(filePath, file);
+      for (const file of files) {
+        const certificateId = crypto.randomUUID();
+        const filePath = `${user.id}/${certificateId}/${file.name}`;
 
-      if (uploadStorageError) throw uploadStorageError;
+        const { error: storageError } = await supabase.storage
+          .from('certificates')
+          .upload(filePath, file);
 
-      const { data: cert, error: insertError } = await supabase
-        .from('certificates')
-        .insert({
+        if (storageError) throw storageError;
+
+        uploadedCerts.push({
           id: certificateId,
-          student_id: user.id,
-          file_path: filePath,
           file_name: file.name,
           file_type: file.type,
           file_size: file.size,
-          status: 'pending',
-        })
-        .select()
-        .single();
-
-      if (insertError) {
-        await supabase.storage.from('certificates').remove([filePath]);
-        throw insertError;
+          file_path: filePath,
+        });
       }
 
-      fetch('/api/certificates/analyze', {
+      // 2. Create batch + jobs via API (does NOT start AI yet)
+      const res = await fetch('/api/batches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificateId: cert.id }),
-      }).catch(err => console.error('Background AI call error:', err));
+        body: JSON.stringify({ certificates: uploadedCerts }),
+      });
 
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? 'Gagal membuat batch analisis');
+      }
+
+      const { batchId } = await res.json();
+
+      // 3. Show progress tracker
+      setActiveBatchId(batchId);
+
+      // 4. Refresh certificate list
       await fetchCertificates(user.id);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Gagal mengunggah sertifikat.';
@@ -160,6 +193,18 @@ export default function StudentDashboard() {
     setLoadingModal(true);
 
     try {
+      // 1. Fetch fresh certificate data from DB (in case AI updated title/organizer recently)
+      const { data: freshCert } = await supabase
+        .from('certificates')
+        .select('*')
+        .eq('id', cert.id)
+        .single();
+
+      if (freshCert) {
+        setSelectedCert(freshCert);
+      }
+
+      // 2. Fetch AI analysis
       const { data: analysis } = await supabase
         .from('certificate_ai_analysis')
         .select('*')
@@ -168,9 +213,11 @@ export default function StudentDashboard() {
 
       setAiAnalysis(analysis);
 
+      // 3. Create signed URL for file preview
+      const targetPath = freshCert ? freshCert.file_path : cert.file_path;
       const { data: signed } = await supabase.storage
         .from('certificates')
-        .createSignedUrl(cert.file_path, 3600);
+        .createSignedUrl(targetPath, 3600);
 
       if (signed) {
         setSignedUrl(signed.signedUrl);
@@ -282,8 +329,17 @@ export default function StudentDashboard() {
                   <p className="text-xs text-gray-500">AI akan menganalisis secara instan</p>
                 </div>
               </div>
-              <UploadZone onUpload={handleUpload} uploading={uploading} />
+              <UploadZone onUpload={handleBatchUpload} uploading={uploading} />
             </div>
+
+            {/* Batch Progress Panel */}
+            {activeBatchId && (
+              <BatchProgress
+                batchId={activeBatchId}
+                onComplete={() => fetchCertificates()}
+                onDismiss={() => setActiveBatchId(null)}
+              />
+            )}
           </div>
 
           {/* List Section */}
@@ -428,7 +484,7 @@ export default function StudentDashboard() {
                 <div className={`p-4 rounded-xl border flex items-center justify-between shadow-sm ${
                   selectedCert.status === 'approved'
                     ? 'bg-green-50/50 border-green-200 text-green-800'
-                    : selectedCert.status === 'rejected'
+                    : selectedCert.status === 'rejected' || selectedCert.status === 'failed'
                     ? 'bg-red-50/50 border-red-200 text-red-800'
                     : 'bg-gray-50 border-gray-200 text-gray-700'
                 }`}>
@@ -436,7 +492,7 @@ export default function StudentDashboard() {
                     <p className="text-[9px] text-gray-500 uppercase tracking-wider font-extrabold">Status Verifikasi</p>
                     <Badge variant={
                       selectedCert.status === 'approved' ? 'success'
-                      : selectedCert.status === 'rejected' ? 'error'
+                      : selectedCert.status === 'rejected' || selectedCert.status === 'failed' ? 'error'
                       : selectedCert.status === 'waiting_review' ? 'warning'
                       : 'default'
                     } className="mt-1">
@@ -445,10 +501,11 @@ export default function StudentDashboard() {
                       {selectedCert.status === 'waiting_review' && 'Menunggu Verifikasi Dosen'}
                       {selectedCert.status === 'approved' && 'Sertifikat Disetujui'}
                       {selectedCert.status === 'rejected' && 'Sertifikat Ditolak'}
+                      {selectedCert.status === 'failed' && 'Gagal Analisis AI'}
                     </Badge>
                   </div>
                   {selectedCert.status === 'approved' && <CheckCircle className="w-8 h-8 text-green-600" />}
-                  {selectedCert.status === 'rejected' && <XCircle className="w-8 h-8 text-red-500" />}
+                  {(selectedCert.status === 'rejected' || selectedCert.status === 'failed') && <XCircle className="w-8 h-8 text-red-500" />}
                   {selectedCert.status === 'waiting_review' && <Clock className="w-8 h-8 text-amber-600 animate-pulse" />}
                 </div>
 
@@ -528,7 +585,7 @@ export default function StudentDashboard() {
                     <div className="text-sm space-y-1.5">
                       <span className="text-gray-500 font-bold block uppercase text-[10px]">Alasan AI:</span>
                       <p className="p-3 bg-white border border-gray-200 rounded-xl text-gray-600 leading-relaxed text-xs font-medium">
-                        {aiAnalysis.reasoning}
+                        {aiAnalysis.reasoning || aiAnalysis.extracted_text || 'Sertifikat valid dan memenuhi kriteria verifikasi AI.'}
                       </p>
                     </div>
                   </div>
