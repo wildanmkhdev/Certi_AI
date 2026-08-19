@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient as createServerClient } from '@/lib/supabase/server';
-import { runWorker } from '@/lib/queue/processor';
 
 /**
  * POST /api/batches
@@ -116,26 +115,22 @@ export async function POST(request: NextRequest) {
       .update({ queued_count: certificates.length })
       .eq('id', batch.id);
 
-    // 5. Trigger worker immediately and wait for response to ensure it starts
-    console.log('[Batches] Triggering worker for immediate processing...');
-    try {
-      const workerResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/worker`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-cron-secret': process.env.CRON_SECRET || '',
-        },
-      });
-      
-      if (workerResponse.ok) {
-        const workerResult = await workerResponse.json();
-        console.log('[Batches] Worker triggered successfully:', workerResult);
-      } else {
-        console.warn('[Batches] Worker trigger failed:', await workerResponse.text());
-      }
-    } catch (workerErr) {
-      console.warn('[Batches] Worker trigger error (non-blocking):', workerErr);
-    }
+    // 5. Trigger worker asynchronously (fire-and-forget) so the upload response
+    //    returns immediately with certificates in 'pending' (antri) state.
+    //    AI results are written to the DB only after the worker finishes the
+    //    analysis; the cron (vercel.json) remains the safety net if this
+    //    background trigger is ever dropped.
+    console.log('[Batches] Dispatching worker in background (fire-and-forget)...');
+    const workerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/worker`;
+    void fetch(workerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-cron-secret': process.env.CRON_SECRET || '',
+      },
+    }).catch((workerErr) => {
+      console.warn('[Batches] Background worker trigger error (non-blocking):', workerErr);
+    });
 
     return NextResponse.json({
       success: true,
@@ -154,7 +149,7 @@ export async function POST(request: NextRequest) {
  * GET /api/batches
  * Returns all batches for the authenticated student
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabaseServer = await createServerClient();
     const { data: { user }, error: authError } = await supabaseServer.auth.getUser();
