@@ -6,8 +6,35 @@
  */
 
 import { ai } from '@/lib/gemini/client';
+import { callHuggingFaceVision, getHfModel } from '@/lib/hf/client';
+import { normalizeQwenResult } from '@/lib/hf/normalize';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
+
+// ─── Timeout helper ────────────────────────────────────────────────────────────
+
+/**
+ * Race a promise against a timeout. The timer is cleared once the race settles
+ * and a no-op rejection handler is attached to the losing promise so a late
+ * provider failure never surfaces as an unhandled rejection.
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(message)), ms);
+  });
+  // Swallow the provider rejection if the timeout wins the race.
+  promise.catch(() => {});
+  try {
+    return await Promise.race([promise, timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 // ─── Combined Schema ──────────────────────────────────────────────────────────
 
@@ -137,14 +164,15 @@ export async function runPipeline(
     return mockPipeline(cert.file_name);
   }
 
-  console.log(`[Pipeline] Single-Pass Gemini 3.6 Flash starting for: ${cert.file_name}`);
-
   // Set a timeout promise. Must stay BELOW Vercel's maxDuration (300s)
   // so the mock fallback always runs before the function is killed.
-  // 240s = 4 minutes.
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error('Gemini API timeout after 4 minutes')), 240 * 1000);
-  });
+  // Budget: Gemini (90s) + OpenRouter (90s) + Hugging Face (80s) + overhead
+  // stays under Vercel's 300s maxDuration.
+  // NOTE: use withTimeout() so losing timeout promises never leak
+  // unhandledRejection errors after the race is already won.
+  const geminiTimeout = 90 * 1000;
+  const openRouterTimeout = 90 * 1000;
+  const hfTimeout = 80 * 1000;
 
   // 4. Download file
   const { data: fileData, error: downloadError } = await supabase.storage
@@ -197,10 +225,13 @@ Hanya kembalikan JSON yang valid tanpa teks tambahan.`;
 
   const startTime = Date.now();
 
-  let response;
+  let responseText: string | null = null;
+  let modelName = 'gemini-3.6-flash';
+
+  // 1) Try Gemini first
   try {
-    // Race between Gemini API call and timeout
-    response = await Promise.race([
+    console.log(`[Pipeline] Gemini 3.6 Flash starting for: ${cert.file_name}`);
+    const response = await withTimeout(
       ai.models.generateContent({
         model: 'gemini-3.6-flash',
         contents: [
@@ -235,43 +266,110 @@ Hanya kembalikan JSON yang valid tanpa teks tambahan.`;
           },
         },
       }),
-      timeoutPromise,
-    ]);
-  } catch (apiError: any) {
-    // If Gemini API fails (quota, rate limit, timeout, etc), fallback to mock
-    console.error('[Pipeline] Gemini API Error:', apiError?.message || apiError);
-    if (
-      apiError?.status === 403 || 
-      apiError?.status === 429 || 
-      apiError?.status === 503 || 
-      apiError?.message?.includes('leaked') ||
-      apiError?.message?.includes('PERMISSION_DENIED') ||
-      apiError?.message?.includes('quota') ||
-      apiError?.message?.includes('timeout')
-    ) {
-      console.warn('[Pipeline] API error (403/429/503/quota/timeout/leaked key), using MOCK fallback');
-      return mockPipeline(cert.file_name);
-    }
-    throw apiError;
+      geminiTimeout,
+      'Gemini API timeout after 90s'
+    );
+    responseText = response?.text ?? null;
+    console.log(`[Pipeline] Gemini succeeded in ${Date.now() - startTime}ms`);
+  } catch (apiError) {
+    const message = apiError instanceof Error ? apiError.message : String(apiError);
+    const status =
+      typeof apiError === 'object' && apiError !== null && 'status' in apiError
+        ? (apiError as { status?: unknown }).status
+        : undefined;
+    console.error('[Pipeline] Gemini API Error:', message);
+    const isGeminiRetryable =
+      status === 403 ||
+      status === 429 ||
+      status === 503 ||
+      message.includes('leaked') ||
+      message.includes('PERMISSION_DENIED') ||
+      message.includes('quota') ||
+      message.includes('timeout');
+
+    if (!isGeminiRetryable) throw apiError;
+    console.warn('[Pipeline] Gemini failed (403/429/503/quota/timeout/leaked), trying OpenRouter fallback...');
   }
 
-  const durationMs = Date.now() - startTime;
-  console.log(`[Pipeline] Gemini single-pass succeeded in ${durationMs}ms!`);
-
-  const responseText = response?.text;
+  // 2) Fallback to OpenRouter if Gemini failed or returned empty
   if (!responseText) {
-    console.warn('[Pipeline] Empty response from Gemini, using mock fallback');
+    try {
+      const openRouterModel = process.env.OPENROUTER_MODEL?.trim() || 'google/gemini-2.5-flash';
+      console.log(`[Pipeline] OpenRouter fallback (${openRouterModel}) starting for: ${cert.file_name}`);
+      const openRouterKey = process.env.OPENROUTER_API_KEY?.trim();
+      if (!openRouterKey) {
+        console.warn('[Pipeline] OPENROUTER_API_KEY not set, skipping OpenRouter fallback');
+      } else {
+        const dataUrl = `data:${mimeType};base64,${base64Data}`;
+        const response = await withTimeout(
+          fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${openRouterKey}`,
+            },
+            body: JSON.stringify({
+              model: openRouterModel,
+              messages: [
+                {
+                  role: 'user',
+                  content: [
+                    { type: 'text', text: prompt },
+                    { type: 'image_url', image_url: { url: dataUrl } },
+                  ],
+                },
+              ],
+              response_format: { type: 'json_object' },
+            }),
+          }),
+          openRouterTimeout,
+          'OpenRouter API timeout after 90s'
+        );
+
+        if (!response.ok) {
+          throw new Error(`OpenRouter HTTP ${response.status}: ${await response.text()}`);
+        }
+
+        const data = await response.json();
+        responseText = data?.choices?.[0]?.message?.content ?? null;
+        modelName = `openrouter:${openRouterModel}`;
+        console.log(`[Pipeline] OpenRouter succeeded in ${Date.now() - startTime}ms`);
+      }
+    } catch (orError) {
+      console.error('[Pipeline] OpenRouter API Error:', orError instanceof Error ? orError.message : orError);
+      responseText = null;
+    }
+  }
+
+  // 3) Fallback to Hugging Face Qwen-VL if Gemini + OpenRouter failed/empty
+  if (!responseText) {
+    try {
+      const hfModel = getHfModel();
+      console.log(`[Pipeline] Hugging Face fallback (${hfModel}) starting for: ${cert.file_name}`);
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      const hfResponse = await withTimeout(
+        callHuggingFaceVision({ dataUrl, prompt }),
+        hfTimeout,
+        'Hugging Face API timeout after 80s'
+      );
+      responseText = hfResponse;
+      modelName = `hf:${hfModel}`;
+      console.log(`[Pipeline] Hugging Face succeeded in ${Date.now() - startTime}ms`);
+    } catch (hfError) {
+      console.error('[Pipeline] Hugging Face API Error:', hfError instanceof Error ? hfError.message : hfError);
+      responseText = null;
+    }
+  }
+
+  // 4) Final fallback: mock mode if all providers failed/empty
+  if (!responseText) {
+    console.warn('[Pipeline] Gemini + OpenRouter + Hugging Face all failed/empty, using MOCK fallback');
     return mockPipeline(cert.file_name);
   }
 
-  // Clean markdown syntax ```json if present
-  let cleanText = responseText.trim();
-  if (cleanText.startsWith('```')) {
-    cleanText = cleanText.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-  }
-
-  const json = JSON.parse(cleanText);
-  const parsed = combinedSchema.parse(json);
+  // Normalize provider output (strips ```json, coerces types) and validate
+  // against the existing CertiAI schema (single source of truth).
+  const parsed = combinedSchema.parse(normalizeQwenResult(responseText));
 
   return {
     extraction: {
@@ -292,6 +390,6 @@ Hanya kembalikan JSON yang valid tanpa teks tambahan.`;
       reason: parsed.reason,
       recommendation: parsed.recommendation,
     },
-    modelName: 'gemini-3.6-flash',
+    modelName,
   };
 }
