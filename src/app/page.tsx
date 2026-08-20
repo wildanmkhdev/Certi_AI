@@ -2,336 +2,432 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { 
-  Award, 
-  Upload, 
-  CheckCircle, 
-  FileText, 
-  Clock, 
-  Shield, 
-  Sparkles,
+import {
   ArrowRight,
-  Star,
-  Zap,
-  Users,
-  TrendingUp,
+  Check,
+  CheckCircle2,
+  ChevronDown,
   FileCheck,
-  Brain
+  FileText,
+  GraduationCap,
+  History,
+  Lock,
+  Shield,
+  UserCheck,
+  Zap,
 } from 'lucide-react';
-import { Button } from '@/components/ui';
 
+/* ----------------------------------------------------------------
+   Elemen Signature: kartu sertifikat + stempel + kartu hasil melayang
+   Metafora "sistem merekomendasikan, manusia memutuskan"
+----------------------------------------------------------------- */
+function SignatureArt() {
+  return (
+    <div className="relative mx-auto w-full max-w-[420px] select-none" aria-hidden="true">
+      {/* Main certificate card */}
+      <div className="relative bg-white border border-green-200 rounded-[20px] p-6 sm:p-7 shadow-soft -rotate-[4deg]">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+            <Check className="w-6 h-6 text-green-700" strokeWidth={3} />
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="h-3 bg-green-200 rounded-full w-3/4" />
+            <div className="h-2.5 bg-green-100 rounded-full w-1/2" />
+          </div>
+        </div>
+
+        <div className="mt-6 space-y-2.5">
+          <div className="h-2.5 bg-green-100 rounded-full w-full" />
+          <div className="h-2.5 bg-green-100 rounded-full w-11/12" />
+          <div className="h-2.5 bg-green-100 rounded-full w-3/4" />
+        </div>
+
+        {/* Stamp */}
+        <div className="mt-6 inline-flex items-center gap-2 rounded-lg border-2 border-dashed border-gold px-3 py-1.5">
+          <CheckCircle2 className="w-4 h-4 text-green-700" />
+          <span className="text-xs font-bold text-green-800 tracking-wide">
+            Sertifikat Terverifikasi
+          </span>
+        </div>
+      </div>
+
+      {/* Floating result card */}
+      <div className="absolute -right-2 sm:-right-6 -bottom-10 rotate-[3deg] w-[220px] sm:w-[240px] bg-white border border-green-200 rounded-[14px] p-4 shadow-soft">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
+            <FileCheck className="w-4 h-4 text-green-700" />
+          </div>
+          <span className="text-xs font-bold text-green-800">
+            Rekomendasi Bobot &amp; Hasil
+          </span>
+        </div>
+        <div className="space-y-1.5 text-xs">
+          <div className="flex justify-between">
+            <span className="text-ink-soft">Kategori</span>
+            <span className="font-semibold text-ink">Workshop</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-ink-soft">Durasi</span>
+            <span className="font-semibold text-ink">8 Jam</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-ink-soft">Bobot</span>
+            <span className="font-bold text-green-700">1</span>
+          </div>
+        </div>
+        <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1">
+          <Check className="w-3 h-3 text-green-700" strokeWidth={3} />
+          <span className="text-[11px] font-semibold text-green-800">Disetujui</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------------
+   Section helpers
+----------------------------------------------------------------- */
+function SectionEyebrow({ children }: { children: React.ReactNode }) {
+  return <div className="eyebrow">{children}</div>;
+}
+
+function FaqItem({
+  question,
+  children,
+}: {
+  question: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group bg-white border border-green-200 rounded-[14px] px-5 py-4 open:shadow-soft-sm">
+      <summary className="flex items-center justify-between gap-4 cursor-pointer list-none font-semibold text-green-950 text-[17px] min-h-[44px]">
+        {question}
+        <ChevronDown className="w-5 h-5 text-green-700 shrink-0 transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+      <p className="mt-3 text-[15px] leading-relaxed text-ink-soft">{children}</p>
+    </details>
+  );
+}
+
+/* ----------------------------------------------------------------
+   Halaman utama
+----------------------------------------------------------------- */
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-gray-900 flex flex-col">
-      {/* HEADER */}
-      <header className="sticky top-0 z-50 glass border-b border-gray-100">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="absolute inset-0 bg-[rgb(34_72_19)] rounded-xl blur-md opacity-30 group-hover:opacity-50 transition-opacity" />
-              <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] flex items-center justify-center shadow-lg transform group-hover:scale-105 transition-transform duration-300">
-                <Award className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight text-gray-900">
-                Certi<span className="text-[rgb(34_72_19)]">AI</span>
-              </span>
-              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
-                UIN Sumatera Utara
-              </span>
-            </div>
+    <div className="min-h-screen bg-white text-ink flex flex-col">
+      {/* NAV */}
+      <header className="glass sticky top-0 z-50">
+        <div className="container-page py-3.5 flex items-center justify-between">
+          <Link href="/" className="flex items-baseline gap-2.5 group">
+            <span className="text-2xl font-semibold text-green-950 font-display tracking-tight">
+              Certi<span className="text-green-800">AI</span>
+            </span>
+            <span className="hidden sm:inline text-[11px] font-medium text-ink-soft tracking-wide">
+              UIN Sumatera Utara
+            </span>
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button variant="ghost" size="md">
-                Masuk
-              </Button>
+            <Link href="/login" className="btn-ghost px-5 text-[15px]">
+              Masuk
             </Link>
-            <Link href="/register">
-              <Button variant="primary" size="md" icon={<ArrowRight className="w-4 h-4" />} iconPosition="right">
-                Daftar Gratis
-              </Button>
+            <Link href="/register" className="btn-primary px-6 text-[15px]">
+              Daftar Gratis
             </Link>
           </div>
         </div>
       </header>
 
-      {/* HERO SECTION */}
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-white via-[rgb(249_250_251)] to-white">
-          {/* Background Pattern */}
+        {/* HERO */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-white via-bg-soft to-white">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[rgb(232_245_233)] rounded-full blur-3xl opacity-30 translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[rgb(232_245_233)] rounded-full blur-3xl opacity-30 -translate-x-1/2 translate-y-1/2" />
+            <div className="absolute top-0 right-0 w-[480px] h-[480px] bg-bg-soft-2 rounded-full blur-3xl opacity-60 translate-x-1/3 -translate-y-1/4" />
+            <div className="absolute bottom-0 left-0 w-[420px] h-[420px] bg-bg-soft-2 rounded-full blur-3xl opacity-40 -translate-x-1/3 translate-y-1/4" />
           </div>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-24 sm:pt-24 sm:pb-32">
-            <div className="text-center space-y-8">
-              {/* Badge */}
-              <div className="animate-fade-in flex justify-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[rgb(76_175_80)]/20 rounded-full shadow-sm hover:shadow-md transition-all duration-300 cursor-default">
-                  <div className="relative">
-                    <Sparkles className="w-4 h-4 text-[rgb(34_72_19)]" />
-                    <span className="absolute inset-0 blur animate-pulse">
-                      <Sparkles className="w-4 h-4 text-[rgb(76_175_80)]" />
-                    </span>
-                  </div>
-                  <span className="text-xs font-bold text-[rgb(34_72_19)] uppercase tracking-wider">
-                    Sistem Verifikasi AI-Powered
-                  </span>
-                </div>
-              </div>
+          <div className="relative container-page pt-14 pb-24 sm:pt-20 sm:pb-28">
+            <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-14 lg:gap-10 items-center">
+              {/* Copy */}
+              <div className="order-2 lg:order-1 text-center lg:text-left space-y-7">
+                <SectionEyebrow>Sistem Rekomendasi Bobot Sertifikat</SectionEyebrow>
 
-              {/* Main Heading */}
-              <div className="animate-fade-in delay-anim-100 space-y-4">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 leading-[1.1] tracking-tight">
-                  Verifikasi Sertifikat
-                  <br />
-                  <span className="relative inline-block">
-                    <span className="text-gradient">Lebih Cepat & Akurat</span>
-                    <svg
-                      className="absolute -bottom-2 left-0 w-full text-[rgb(76_175_80)]"
-                      height="12"
-                      viewBox="0 0 300 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M2 10C50 5 250 5 298 10"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
+                <h1 className="text-[clamp(34px,4.4vw,52px)] leading-[1.12] text-green-950">
+                  Bobot sertifikat direkomendasikan sistem, keputusan tetap di tangan{' '}
+                  <span className="text-green-700">dosen</span>.
                 </h1>
-              </div>
 
-              {/* Subtitle */}
-              <p className="animate-fade-in delay-anim-200 text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Platform AI terdepan untuk verifikasi sertifikat mahasiswa UINSU. 
-                Ekstraksi otomatis, rekomendasi bobot cerdas, dan verifikasi dosen — 
-                semua dalam hitungan detik.
-              </p>
+                <p className="text-lg text-ink-soft max-w-xl mx-auto lg:mx-0 leading-relaxed">
+                  Unggah sertifikat kegiatan, sistem akan membaca dan merekomendasikan
+                  bobotnya. Dosen tinggal meninjau dan menyetujui — lebih ringkas dari
+                  proses manual selama ini.
+                </p>
 
-              {/* CTA Buttons */}
-              <div className="animate-fade-in delay-anim-300 flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Link href="/register">
-                  <Button 
-                    variant="primary" 
-                    size="lg" 
-                    icon={<Zap className="w-5 h-5" />}
-                    className="text-base px-8 py-4 shadow-green"
-                  >
-                    Mulai Sekarang — Gratis
-                  </Button>
-                </Link>
-                <Link href="#features">
-                  <Button variant="secondary" size="lg" className="text-base px-8 py-4">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                  <Link href="/register" className="btn-primary px-8">
+                    Daftar Sekarang — Gratis
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                  <Link href="#cara-kerja" className="btn-ghost px-8">
                     Lihat Cara Kerja
-                  </Button>
-                </Link>
+                  </Link>
+                </div>
+
+                <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-2">
+                  <span className="chip">🗂️ 3 Langkah Sederhana</span>
+                  <span className="chip">📄 PDF &amp; Gambar, maks 10MB</span>
+                  <span className="chip">✅ Keputusan Akhir oleh Dosen</span>
+                </div>
               </div>
 
-              {/* Stats */}
-              <div className="animate-fade-in delay-anim-500 pt-12 grid grid-cols-3 gap-8 max-w-2xl mx-auto">
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-black text-[rgb(34_72_19)]">99%</div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-semibold mt-1">Akurasi AI</div>
-                </div>
-                <div className="text-center border-x border-gray-200">
-                  <div className="text-3xl sm:text-4xl font-black text-[rgb(34_72_19)]">&lt;10s</div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-semibold mt-1">Proses Analisis</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl sm:text-4xl font-black text-[rgb(34_72_19)]">100%</div>
-                  <div className="text-xs sm:text-sm text-gray-600 font-semibold mt-1">Keamanan Data</div>
-                </div>
+              {/* Signature art */}
+              <div className="order-1 lg:order-2 pt-4 pb-10 lg:pt-0 lg:pb-0">
+                <SignatureArt />
               </div>
             </div>
           </div>
         </section>
 
-        {/* FEATURES SECTION */}
-        <section id="features" className="py-24 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-[rgb(232_245_233)] rounded-full text-xs font-bold text-[rgb(34_72_19)] uppercase tracking-wider mb-4">
-                <Star className="w-3.5 h-3.5" />
-                Fitur Unggulan
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4">
-                Tiga Langkah Sederhana
+        {/* UNTUK SIAPA */}
+        <section className="py-20 bg-white">
+          <div className="container-page">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <SectionEyebrow>Untuk Siapa</SectionEyebrow>
+              <h2 className="text-[clamp(26px,3vw,34px)] mt-4">
+                Dibuat untuk dua peran, satu tujuan
               </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Dari upload hingga verifikasi, semuanya dirancang untuk efisiensi maksimal
+              <p className="mt-3 text-ink-soft">
+                Mahasiswa unggah dan pantau. Dosen tinjau dan putuskan. Semua tercatat
+                rapi.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Feature 1 */}
-              <div className="card-hover p-8 group animate-fade-in">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-[rgb(34_72_19)] rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Upload className="w-8 h-8 text-white" />
-                  </div>
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Mahasiswa */}
+              <div className="card-rounded p-8">
+                <div className="w-12 h-12 rounded-[14px] bg-green-100 flex items-center justify-center mb-5">
+                  <GraduationCap className="w-6 h-6 text-green-700" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">1. Upload Sertifikat</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Drag & drop file PDF atau gambar sertifikat. Sistem kami mendukung berbagai format dan ukuran hingga 10MB.
+                <h3 className="text-2xl mb-3">Untuk Mahasiswa</h3>
+                <p className="text-ink-soft mb-6">
+                  Unggah sertifikat kegiatan dan biarkan sistem membantu memprosesnya.
+                  Pantau status dari mana saja.
                 </p>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[rgb(34_72_19)]">
-                  <span>PDF, JPG, PNG</span>
-                  <CheckCircle className="w-4 h-4" />
-                </div>
+                <ul className="space-y-3">
+                  {[
+                    'Unggah dari HP atau laptop',
+                    'Lihat status langsung tanpa menunggu lama',
+                    'Riwayat tersimpan rapi',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-[15px]">
+                      <Check className="w-4 h-4 text-green-600 mt-1 shrink-0" strokeWidth={3} />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {/* Feature 2 */}
-              <div className="card-hover p-8 group animate-fade-in delay-anim-100">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-[rgb(34_72_19)] rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <Brain className="w-8 h-8 text-white" />
-                  </div>
+              {/* Dosen */}
+              <div className="card-rounded p-8">
+                <div className="w-12 h-12 rounded-[14px] bg-green-100 flex items-center justify-center mb-5">
+                  <UserCheck className="w-6 h-6 text-green-700" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">2. AI Menganalisis</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Gemini AI membaca, mengekstrak informasi kegiatan, kategori, durasi, dan memberikan rekomendasi bobot secara cerdas.
+                <h3 className="text-2xl mb-3">Untuk Dosen</h3>
+                <p className="text-ink-soft mb-6">
+                  Tinjau hasil rekomendasi dengan ringkas. Sesuaikan bila perlu, lalu
+                  beri keputusan akhir.
                 </p>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[rgb(34_72_19)]">
-                  <span>Powered by Google Gemini</span>
-                  <Sparkles className="w-4 h-4" />
-                </div>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="card-hover p-8 group animate-fade-in delay-anim-200">
-                <div className="relative mb-6">
-                  <div className="absolute inset-0 bg-[rgb(34_72_19)] rounded-2xl blur-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
-                  <div className="relative w-16 h-16 bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <CheckCircle className="w-8 h-8 text-white" />
-                  </div>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">3. Dosen Verifikasi</h3>
-                <p className="text-gray-600 leading-relaxed mb-4">
-                  Dosen review hasil AI, menyesuaikan bobot jika perlu, dan memberikan keputusan akhir dengan catatan.
-                </p>
-                <div className="flex items-center gap-2 text-sm font-semibold text-[rgb(34_72_19)]">
-                  <span>Human in the loop</span>
-                  <Shield className="w-4 h-4" />
-                </div>
+                <ul className="space-y-3">
+                  {[
+                    'Ringkasan siap ditinjau',
+                    'Bobot bisa disesuaikan sesuai penilaian',
+                    'Tercatat sebagai jejak audit',
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3 text-[15px]">
+                      <Check className="w-4 h-4 text-green-600 mt-1 shrink-0" strokeWidth={3} />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
         </section>
 
-        {/* BENEFITS SECTION */}
-        <section className="py-24 bg-gradient-to-b from-white to-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Left - Benefits List */}
-              <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded-full text-xs font-bold text-gray-700 uppercase tracking-wider mb-4">
-                  <TrendingUp className="w-3.5 h-3.5" />
-                  Keunggulan
+        {/* CARA KERJA */}
+        <section id="cara-kerja" className="py-20 bg-bg-soft scroll-mt-20">
+          <div className="container-page">
+            <div className="card-dark px-6 py-14 sm:px-12 sm:py-16">
+              <div className="text-center max-w-2xl mx-auto mb-14">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-green-100 uppercase tracking-wider">
+                  Cara Kerja
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-gray-900">
-                  Kenapa CertiAI?
+                <h2 className="text-white text-[clamp(26px,3vw,34px)] mt-4">
+                  Tiga langkah sederhana
                 </h2>
-                <p className="text-lg text-gray-600 leading-relaxed">
-                  Sistem verifikasi sertifikat paling canggih untuk institusi pendidikan modern
+                <p className="mt-3 text-green-100/80">
+                  Sistem membantu mengolah, dosen yang memutuskan.
                 </p>
+              </div>
 
-                <div className="space-y-4 pt-4">
-                  {[
-                    {
-                      icon: <Clock className="w-5 h-5" />,
-                      title: 'Hemat Waktu 90%',
-                      desc: 'AI memproses dalam detik, bukan jam atau hari',
-                    },
-                    {
-                      icon: <Shield className="w-5 h-5" />,
-                      title: 'Data Terenkripsi',
-                      desc: 'File disimpan di storage privat dengan akses terbatas',
-                    },
-                    {
-                      icon: <Users className="w-5 h-5" />,
-                      title: 'Keputusan Final pada Dosen',
-                      desc: 'AI hanya merekomendasikan, manusia yang memutuskan',
-                    },
-                    {
-                      icon: <FileCheck className="w-5 h-5" />,
-                      title: 'Audit Trail Lengkap',
-                      desc: 'Semua aktivitas tercatat untuk transparansi',
-                    },
-                  ].map((benefit, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-[rgb(76_175_80)]/30 hover:shadow-md transition-all duration-300 animate-fade-in"
-                      style={{ animationDelay: `${idx * 100}ms` }}
-                    >
-                      <div className="flex-shrink-0 w-10 h-10 bg-[rgb(232_245_233)] rounded-lg flex items-center justify-center text-[rgb(34_72_19)]">
-                        {benefit.icon}
+              <ol className="grid md:grid-cols-3 gap-10 relative">
+                <li className="relative">
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-white/10 border border-white/20 text-white font-display text-lg font-semibold shrink-0">
+                      1
+                    </div>
+                    <div>
+                      <h3 className="text-white text-xl mb-2">Unggah Sertifikat</h3>
+                      <p className="text-green-100/80 text-[15px]">
+                        Drag &amp; drop, PDF/JPG/PNG maks 10MB.
+                      </p>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="relative">
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-white/10 border border-white/20 text-white font-display text-lg font-semibold shrink-0">
+                      2
+                    </div>
+                    <div>
+                      <h3 className="text-white text-xl mb-2">
+                        Sistem Membaca &amp; Merekomendasikan
+                      </h3>
+                      <p className="text-green-100/80 text-[15px]">
+                        Mengenali kategori &amp; durasi, lalu merekomendasikan bobot.
+                      </p>
+                      <span className="inline-block mt-3 px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-green-100">
+                        Teknologi pembacaan otomatis
+                      </span>
+                    </div>
+                  </div>
+                </li>
+
+                <li className="relative">
+                  <div className="flex items-start gap-4">
+                    <div className="flex items-center justify-center w-11 h-11 rounded-full bg-white/10 border border-white/20 text-white font-display text-lg font-semibold shrink-0">
+                      3
+                    </div>
+                    <div>
+                      <h3 className="text-white text-xl mb-2">
+                        Dosen Meninjau &amp; Menyetujui
+                      </h3>
+                      <p className="text-green-100/80 text-[15px]">
+                        Dosen memeriksa rekomendasi sistem, menyesuaikan, lalu memberi
+                        keputusan akhir.
+                      </p>
+                      <span className="inline-block mt-3 px-3 py-1 rounded-full bg-white/10 text-[11px] font-semibold text-green-100">
+                        Keputusan manusia
+                      </span>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </div>
+        </section>
+
+        {/* KENAPA CertiAI */}
+        <section className="py-20 bg-white">
+          <div className="container-page">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <SectionEyebrow>Kenapa CertiAI</SectionEyebrow>
+              <h2 className="text-[clamp(26px,3vw,34px)] mt-4">
+                Dipercaya karena transparan
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: <Zap className="w-5 h-5" />,
+                  title: 'Cepat',
+                  desc: 'Rekomendasi keluar dalam hitungan detik.',
+                },
+                {
+                  icon: <Lock className="w-5 h-5" />,
+                  title: 'Aman',
+                  desc: 'Penyimpanan privat, akses terbatas.',
+                },
+                {
+                  icon: <Shield className="w-5 h-5" />,
+                  title: 'Manusia yang Memutuskan',
+                  desc: 'Sistem hanya merekomendasikan, dosen yang menentukan.',
+                },
+                {
+                  icon: <History className="w-5 h-5" />,
+                  title: 'Tercatat Rapi',
+                  desc: 'Jejak audit setiap tinjauan.',
+                },
+              ].map((item) => (
+                <div key={item.title} className="card-hover p-7">
+                  <div className="w-11 h-11 rounded-[14px] bg-green-100 flex items-center justify-center text-green-700 mb-4">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-lg mb-2">{item.title}</h3>
+                  <p className="text-[15px] text-ink-soft leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CONTOH HASIL REKOMENDASI */}
+        <section className="py-20 bg-bg-soft">
+          <div className="container-page">
+            <div className="card-dark px-6 py-14 sm:px-12 sm:py-16">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
+                {/* Copy */}
+                <div>
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-xs font-semibold text-green-100 uppercase tracking-wider">
+                    Contoh Hasil
+                  </div>
+                  <h2 className="text-white text-[clamp(26px,3vw,34px)] mt-4 mb-4">
+                    Seperti apa hasil rekomendasinya?
+                  </h2>
+                  <p className="text-green-100/80 text-[17px] leading-relaxed max-w-md">
+                    Setelah sertifikat diunggah, sistem menyusun rekomendasi kategori,
+                    durasi, dan bobot dalam satu tampilan ringkas — siap ditinjau dosen.
+                  </p>
+                </div>
+
+                {/* Result card */}
+                <div className="relative">
+                  <div className="absolute -inset-4 bg-bg-soft-2 rounded-[28px] opacity-50 blur-2xl" aria-hidden="true" />
+                  <div className="relative bg-white border border-green-200 rounded-[20px] p-6 sm:p-7 shadow-soft">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-10 h-10 rounded-[12px] bg-green-100 flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-green-700" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-gray-900 mb-1">{benefit.title}</h4>
-                        <p className="text-sm text-gray-600">{benefit.desc}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Right - Visual */}
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] rounded-3xl blur-3xl opacity-20" />
-                <div className="relative bg-white border border-gray-200 rounded-3xl p-8 shadow-xl">
-                  <div className="space-y-4">
-                    {/* Mock Certificate Preview */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-[rgb(232_245_233)] rounded-lg flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-[rgb(34_72_19)]" />
+                        <div className="text-sm font-semibold text-green-800">
+                          Rekomendasi Bobot &amp; Hasil
                         </div>
-                        <div className="flex-1">
-                          <div className="h-3 bg-gray-200 rounded w-3/4 mb-2" />
-                          <div className="h-2 bg-gray-100 rounded w-1/2" />
-                        </div>
+                        <div className="text-xs text-ink-soft">Sertifikat-Pelatihan-Jurnalistik.pdf</div>
                       </div>
                     </div>
 
-                    {/* Mock AI Analysis */}
-                    <div className="bg-gradient-to-br from-[rgb(232_245_233)] to-white border border-[rgb(76_175_80)]/30 rounded-xl p-6 space-y-3">
-                      <div className="flex items-center gap-2 text-sm font-bold text-[rgb(34_72_19)]">
-                        <Sparkles className="w-4 h-4" />
-                        Hasil Analisis AI
+                    <div className="space-y-3 border-t border-green-200 pt-5">
+                      <div className="flex justify-between text-[15px]">
+                        <span className="text-ink-soft">Kategori</span>
+                        <span className="font-semibold text-ink">Workshop</span>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Kategori:</span>
-                          <span className="font-bold text-gray-900">Workshop</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Durasi:</span>
-                          <span className="font-bold text-gray-900">8 Jam</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Rekomendasi:</span>
-                          <span className="font-black text-[rgb(34_72_19)] text-lg">Bobot 1</span>
-                        </div>
+                      <div className="flex justify-between text-[15px]">
+                        <span className="text-ink-soft">Durasi</span>
+                        <span className="font-semibold text-ink">8 Jam</span>
+                      </div>
+                      <div className="flex justify-between text-[15px]">
+                        <span className="text-ink-soft">Rekomendasi Bobot</span>
+                        <span className="font-bold text-green-700 text-lg">1</span>
                       </div>
                     </div>
 
-                    {/* Mock Approval */}
-                    <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-xl">
-                      <span className="text-sm font-bold text-green-700">Status</span>
-                      <div className="flex items-center gap-2 px-3 py-1 bg-green-100 rounded-full">
-                        <CheckCircle className="w-4 h-4 text-green-600" />
-                        <span className="text-xs font-bold text-green-700">Disetujui</span>
-                      </div>
+                    <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-green-100 border border-green-200 px-3.5 py-1.5">
+                      <CheckCircle2 className="w-4 h-4 text-green-700" />
+                      <span className="text-[13px] font-semibold text-green-800">
+                        Disetujui oleh Dosen Pembimbing
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -340,39 +436,51 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* CTA SECTION */}
-        <section className="py-24 bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(27_54_15)] relative overflow-hidden">
-          {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 left-1/4 w-72 h-72 bg-white rounded-full blur-3xl" />
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl" />
-          </div>
+        {/* FAQ */}
+        <section className="py-20 bg-white">
+          <div className="container-page max-w-3xl">
+            <div className="text-center mb-12">
+              <SectionEyebrow>Pertanyaan Umum</SectionEyebrow>
+              <h2 className="text-[clamp(26px,3vw,34px)] mt-4">Masih ada pertanyaan?</h2>
+            </div>
 
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="space-y-6">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white">
-                Siap Mengoptimalkan <br className="hidden sm:block" />
-                Verifikasi Sertifikat?
+            <div className="space-y-4">
+              <FaqItem question="Format file apa saja yang didukung?">
+                Sertifikat dapat diunggah dalam format PDF, JPG, atau PNG dengan ukuran
+                maksimal 10MB per berkas.
+              </FaqItem>
+              <FaqItem question="Apakah bobot dari sistem langsung final?">
+                Tidak. Sistem hanya memberikan rekomendasi. Keputusan akhir selalu diambil
+                oleh dosen yang meninjau, termasuk menyesuaikan bobot bila diperlukan.
+              </FaqItem>
+              <FaqItem question="Di mana data saya disimpan?">
+                Berkas dan hasil disimpan di penyimpanan privat dengan akses terbatas hanya
+                untuk mahasiswa dan dosen yang berkepentingan.
+              </FaqItem>
+              <FaqItem question="Apakah CertiAI berbayar?">
+                Gratis untuk mahasiswa dan dosen di lingkungan UIN Sumatera Utara.
+              </FaqItem>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA BANNER */}
+        <section className="py-20 bg-bg-soft">
+          <div className="container-page">
+            <div className="card-dark text-center px-6 py-16 sm:px-12">
+              <h2 className="text-white text-[clamp(26px,3vw,36px)] max-w-2xl mx-auto">
+                Siap mempercepat proses verifikasi sertifikat?
               </h2>
-              <p className="text-lg text-green-100 max-w-2xl mx-auto">
-                Bergabung dengan UINSU dalam transformasi digital proses verifikasi sertifikat mahasiswa
+              <p className="mt-4 text-green-100/80 max-w-xl mx-auto">
+                Daftar sekarang dan mulai unggah sertifikat pertama Anda. Dosen tinggal
+                meninjau dan menyetujui.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                <Link href="/register">
-                  <Button 
-                    size="lg"
-                    className="bg-white text-[rgb(34_72_19)] hover:bg-gray-50 shadow-xl px-8 py-4 text-base font-bold"
-                  >
-                    Daftar Sekarang — Gratis
-                  </Button>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/register" className="btn-white px-8">
+                  Daftar Sekarang — Gratis
                 </Link>
-                <Link href="/login">
-                  <Button 
-                    size="lg"
-                    className="bg-transparent text-white border-2 border-white hover:bg-white/10 px-8 py-4 text-base font-bold"
-                  >
-                    Sudah Punya Akun? Masuk
-                  </Button>
+                <Link href="/login" className="btn-outline-white px-8">
+                  Masuk
                 </Link>
               </div>
             </div>
@@ -381,29 +489,22 @@ export default function LandingPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-200 bg-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[rgb(34_72_19)] to-[rgb(76_175_80)] flex items-center justify-center shadow-lg">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className="font-black text-gray-900">
-                  Certi<span className="text-[rgb(34_72_19)]">AI</span>
-                </span>
-                <p className="text-xs text-gray-500">UIN Sumatera Utara</p>
-              </div>
-            </div>
-            
-            <div className="text-center md:text-right">
-              <p className="text-sm text-gray-600">
-                © 2026 CertiAI — Universitas Islam Negeri Sumatera Utara
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                <span className="font-semibold">AI assists. Human decides.</span>
-              </p>
-            </div>
+      <footer className="bg-white border-t border-green-200 py-10">
+        <div className="container-page flex flex-col md:flex-row items-center justify-between gap-5">
+          <div className="flex items-baseline gap-2.5">
+            <span className="text-xl font-semibold text-green-950 font-display">
+              Certi<span className="text-green-800">AI</span>
+            </span>
+            <span className="text-xs text-ink-soft">UIN Sumatera Utara</span>
+          </div>
+
+          <div className="flex flex-col items-center md:items-end gap-3">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-green-100 border border-green-200 text-[12px] font-semibold text-green-800">
+              Sistem merekomendasikan. Manusia memutuskan.
+            </span>
+            <p className="text-sm text-ink-soft">
+              © 2026 CertiAI — Universitas Islam Negeri Sumatera Utara
+            </p>
           </div>
         </div>
       </footer>

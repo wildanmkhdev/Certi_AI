@@ -2,31 +2,40 @@
 
 /* ============================================
    DESIGN SYSTEM - CertiAI UINSU
-   Warna: Hijau UINSU + Putih Bersih
+   Sumber: design.md (identitas resmi UIN Sumatera Utara)
+   Dominan putih + hijau, emas hanya aksen tipis
    ============================================ */
 
 @theme {
-  /* Brand Colors - UINSU Green */
-  --color-uinsu-primary: #224813;        /* Hijau UINSU Official */
-  --color-uinsu-light: #4caf50;          /* Hijau Terang */
-  --color-uinsu-dark: #1b5e20;           /* Hijau Gelap */
-  --color-uinsu-surface: #e8f5e9;        /* Hijau Surface */
+  /* Brand Colors - Official UINSU palette (pixel-sampled from logo) */
+  --color-white: #ffffff;
+  --color-bg-soft: #f5f8f4;
+  --color-bg-soft-2: #e2eedd;
+  --color-green-100: #f1f6ef;
+  --color-green-200: #e2eedd;
+  --color-green-600: #3f8523;
+  --color-green-700: #31681c;
+  --color-green-800: #224813;
+  --color-green-950: #17300d;
+  --color-gold: #d19200;
+  --color-ink: #16210f;
+  --color-ink-soft: #48543f;
+  --color-line: #dce8d6;
 
-  /* Fonts */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: 'Lexend', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+
+  /* Base sizes */
+  --text-body: 17px;
 
   /* Animations */
-  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
   --animate-fade-in-scale: fade-in-scale 0.3s ease-out both;
   --animate-slide-in-right: slide-in-right 0.4s ease-out both;
   --animate-slide-in-left: slide-in-left 0.4s ease-out both;
-  --animate-slide-in-up: slide-in-up 0.5s ease-out both;
-  --animate-bounce-subtle: bounce-subtle 2s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
   --animate-shimmer: shimmer 2s linear infinite;
 
-  /* Keyframes */
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
@@ -47,21 +56,6 @@
     to { opacity: 1; transform: translateX(0); }
   }
 
-  @keyframes slide-in-up {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes bounce-subtle {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgb(34 72 19 / 0.4); }
-    50% { box-shadow: 0 0 0 10px rgb(34 72 19 / 0); }
-  }
-
   @keyframes shimmer {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
@@ -74,7 +68,7 @@
 
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-line;
   }
 
   html {
@@ -82,35 +76,37 @@
   }
 
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply bg-white text-ink antialiased;
     font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.65;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight;
+    @apply font-semibold tracking-tight text-green-950;
+    letter-spacing: -0.01em;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+  /* Accessible focus states */
+  :focus-visible {
+    outline: 3px solid var(--color-green-700);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
-  ::-webkit-scrollbar-track {
-    @apply bg-gray-100;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    @apply bg-gray-300 rounded-full;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   ::selection {
-    @apply bg-uinsu-surface text-uinsu-dark;
+    @apply bg-green-100 text-green-800;
   }
 }
 
@@ -119,27 +115,74 @@
    ============================================ */
 
 @utility glass {
-  @apply bg-white/80 backdrop-blur-md border border-gray-200/50;
+  @apply bg-white/80 backdrop-blur-md border-b border-line;
 }
 
+@utility container-page {
+  @apply w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+@utility shadow-soft {
+  box-shadow: 0 20px 45px -15px rgba(11, 61, 46, 0.25);
+}
+
+@utility shadow-soft-sm {
+  box-shadow: 0 10px 30px -10px rgba(11, 61, 46, 0.2);
+}
+
+/* Buttons - min 44px height, rounded-full */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 font-semibold text-base rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  min-height: 44px;
+}
+
+@utility btn-primary {
+  @apply btn bg-green-700 text-white hover:bg-green-800 shadow-soft-sm hover:shadow-soft active:scale-[0.98];
+}
+
+@utility btn-ghost {
+  @apply btn bg-transparent text-green-700 border border-green-700 hover:bg-green-100 active:scale-[0.98];
+}
+
+@utility btn-white {
+  @apply btn bg-white text-green-800 hover:bg-green-100 shadow-soft-sm active:scale-[0.98];
+}
+
+@utility btn-outline-white {
+  @apply btn bg-transparent text-white border-2 border-white/70 hover:bg-white/10 active:scale-[0.98];
+}
+
+@utility eyebrow {
+  @apply inline-flex items-center gap-2 px-4 py-1.5 bg-green-100 border border-green-200 rounded-full text-xs font-semibold text-green-800 uppercase tracking-wider;
+}
+
+@utility chip {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-green-200 text-sm font-medium text-ink-soft;
+}
+
+@utility card-rounded {
+  @apply bg-white border border-green-200 rounded-[20px] shadow-soft-sm;
+}
+
+@utility card-dark {
+  @apply bg-green-950 text-white rounded-[28px];
+}
+
+/* Dashboard/legacy utilities (used by auth & dashboard pages) */
 @utility glass-green {
-  @apply bg-uinsu-surface/80 backdrop-blur-md border border-uinsu-light/30;
+  @apply bg-green-100/80 backdrop-blur-md border border-green-600/30;
 }
 
 @utility text-gradient {
-  @apply bg-gradient-to-r from-uinsu-dark to-uinsu-light bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-green-800 to-green-600 bg-clip-text text-transparent;
 }
 
 @utility bg-gradient-primary {
-  background: linear-gradient(135deg, #224813 0%, #4caf50 100%);
-}
-
-@utility shadow-green {
-  box-shadow: 0 10px 25px -5px rgb(34 72 19 / 0.25);
+  background: linear-gradient(135deg, #224813 0%, #3f8523 100%);
 }
 
 @utility hover-lift {
-  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-soft;
 }
 
 @utility interactive-scale {
@@ -147,15 +190,15 @@
 }
 
 @utility skeleton {
-  @apply animate-shimmer bg-gray-100 rounded;
+  @apply animate-pulse bg-green-100 rounded;
 }
 
 @utility badge {
-  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold;
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
 }
 
 @utility badge-success {
-  @apply bg-green-50 text-green-700 border border-green-200;
+  @apply bg-green-100 text-green-800 border border-green-200;
 }
 
 @utility badge-warning {
@@ -171,47 +214,36 @@
 }
 
 @utility badge-uinsu {
-  @apply bg-uinsu-surface text-uinsu-dark border border-uinsu-light/30;
+  @apply bg-green-100 text-green-800 border border-green-200;
 }
 
 @utility card {
-  @apply bg-white border border-gray-200 rounded-2xl shadow-sm;
+  @apply bg-white border border-green-200 rounded-[20px] shadow-soft-sm;
 }
 
 @utility card-hover {
-  @apply card transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  @apply card transition-all duration-300 hover:shadow-soft hover:-translate-y-1;
 }
 
 @utility card-interactive {
   @apply card-hover cursor-pointer active:scale-[0.98];
 }
 
-@utility btn {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
-}
-
-@utility btn-primary {
-  @apply btn bg-uinsu-primary text-white hover:bg-uinsu-dark shadow-md shadow-uinsu-primary/20 hover:shadow-lg hover:shadow-uinsu-primary/30 active:scale-95;
-}
-
 @utility btn-secondary {
-  @apply btn bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:scale-95;
-}
-
-@utility btn-ghost {
-  @apply btn bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900;
+  @apply btn bg-white text-ink border border-line hover:bg-green-100 active:scale-[0.98];
 }
 
 @utility btn-success {
-  @apply btn bg-green-500 text-white hover:bg-green-600 shadow-md shadow-green-500/20;
+  @apply btn bg-green-600 text-white hover:bg-green-700 shadow-soft-sm;
 }
 
 @utility btn-danger {
-  @apply btn bg-red-500 text-white hover:bg-red-600 shadow-md shadow-red-500/20;
+  @apply btn bg-red-500 text-white hover:bg-red-600 shadow-soft-sm;
 }
 
 @utility input {
-  @apply w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:border-uinsu-primary focus:ring-2 focus:ring-uinsu-primary/20;
+  @apply w-full px-4 py-2.5 bg-white border border-green-200 rounded-[10px] text-ink placeholder-ink-soft/60 transition-all duration-200 focus:outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/20;
+  min-height: 44px;
 }
 
 @utility input-error {
@@ -219,19 +251,19 @@
 }
 
 @utility modal-backdrop {
-  @apply fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[1040];
+  @apply fixed inset-0 bg-green-950/60 backdrop-blur-sm z-[1040];
 }
 
 @utility dropdown-menu {
-  @apply bg-white border border-gray-200 rounded-2xl shadow-xl py-2 min-w-[200px];
+  @apply bg-white border border-green-200 rounded-2xl shadow-soft py-2 min-w-[200px];
 }
 
 @utility dropdown-item {
-  @apply flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer;
+  @apply flex items-center gap-2 px-4 py-2 text-sm text-ink hover:bg-green-100 transition-colors cursor-pointer;
 }
 
 @utility status-pending {
-  @apply badge bg-gray-50 text-gray-600 border-gray-200;
+  @apply badge bg-gray-50 text-ink-soft border-line;
 }
 
 @utility status-processing {
@@ -243,15 +275,9 @@
 }
 
 @utility status-approved {
-  @apply badge bg-green-50 text-green-700 border-green-200;
+  @apply badge bg-green-100 text-green-800 border-green-200;
 }
 
 @utility status-rejected {
   @apply badge bg-red-50 text-red-700 border-red-200;
 }
-
-/* Animation delay helpers (compose with animate-*) */
-@utility delay-anim-100 { animation-delay: 100ms; }
-@utility delay-anim-200 { animation-delay: 200ms; }
-@utility delay-anim-300 { animation-delay: 300ms; }
-@utility delay-anim-500 { animation-delay: 500ms; }
