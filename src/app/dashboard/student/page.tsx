@@ -25,6 +25,7 @@ import { UploadZone } from '@/components/dashboard/UploadZone';
 import { CertificateCard } from '@/components/dashboard/CertificateCard';
 import { BatchProgress } from '@/components/dashboard/BatchProgress';
 import { Button, Input, Modal, Badge, Skeleton } from '@/components/ui';
+import { AdvisorCard } from '@/components/dashboard/AdvisorCard';
 
 export default function StudentDashboard() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function StudentDashboard() {
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedAdvisorIds, setSelectedAdvisorIds] = useState<string[]>([]);
 
   // Batch progress state
   const [activeBatchId, setActiveBatchId] = useState<string | null>(null);
@@ -115,6 +117,10 @@ export default function StudentDashboard() {
   }, [fetchUserData, fetchCertificates, supabase]);
 
   const handleBatchUpload = async (files: File[]) => {
+    if (selectedAdvisorIds.length === 0) {
+      alert('Pilih minimal 1 dosen pembimbing tujuan di panel "Dosen Pembimbing Akademik" sebelum mengupload sertifikat.');
+      return;
+    }
     setUploading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -152,7 +158,10 @@ export default function StudentDashboard() {
       const res = await fetch('/api/batches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ certificates: uploadedCerts }),
+        body: JSON.stringify({
+          certificates: uploadedCerts,
+          reviewer_ids: selectedAdvisorIds,
+        }),
       });
 
       if (!res.ok) {
@@ -314,6 +323,9 @@ export default function StudentDashboard() {
             <div className="text-3xl font-black text-gray-900">{statsWeight}</div>
           </div>
         </div>
+
+        {/* Advisor Panel */}
+        <AdvisorCard onSelectionChange={setSelectedAdvisorIds} />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">

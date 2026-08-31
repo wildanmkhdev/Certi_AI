@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { User, Mail, Lock, Shield, BookOpen, CheckCircle2, GraduationCap } from 'lucide-react';
 import { AuthShell } from '@/components/auth/AuthShell';
 import { Button, Alert, Input } from '@/components/ui';
+import { LecturerSearch } from '@/components/auth/LecturerSearch';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [idNumber, setIdNumber] = useState('');
+  const [advisor1, setAdvisor1] = useState<string | null>(null);
+  const [advisor2, setAdvisor2] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -33,6 +36,12 @@ export default function RegisterPage() {
       return;
     }
 
+    if (role === 'student' && !advisor1) {
+      setError('Pilih minimal Dosen Pembimbing 1.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const metadata: Record<string, string> = {
         role,
@@ -41,6 +50,8 @@ export default function RegisterPage() {
 
       if (role === 'student') {
         metadata.student_number = idNumber;
+        metadata.advisor_1_id = advisor1 || '';
+        metadata.advisor_2_id = advisor2 || '';
       } else {
         metadata.lecturer_number = idNumber;
       }
@@ -164,6 +175,24 @@ export default function RegisterPage() {
                 icon={<Shield className="w-5 h-5" />}
                 required
               />
+
+              {role === 'student' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <LecturerSearch
+                    label="Dosen Pembimbing 1"
+                    placeholder="Cari pembimbing 1..."
+                    selectedId={advisor1}
+                    onSelect={(l) => setAdvisor1(l ? l.id : null)}
+                    required
+                  />
+                  <LecturerSearch
+                    label="Dosen Pembimbing 2 (Opsional)"
+                    placeholder="Cari pembimbing 2..."
+                    selectedId={advisor2}
+                    onSelect={(l) => setAdvisor2(l ? l.id : null)}
+                  />
+                </div>
+              )}
 
               <Input
                 type="email"

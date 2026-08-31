@@ -1,0 +1,134 @@
+graph TB
+    subgraph Users["👤 Users"]
+        Student["Student"]
+        Lecturer["Lecturer"]
+        Admin["Admin"]
+    end
+
+    subgraph Frontend["🖥️ Next.js 16 Frontend (React 19)"]
+        LoginPage["/login & /register<br/>AuthShell"]
+        StudentDash["/dashboard/student<br/>Upload, Track, View"]
+        LecturerDash["/dashboard/lecturer<br/>Review Queue"]
+        AdminDash["/dashboard/admin<br/>Rules & Monitoring"]
+        Components["UI Components<br/>UploadZone, BatchProgress,<br/>CertificateCard, Modal"]
+    end
+
+    subgraph API["⚡ API Routes"]
+        BatchAPI["POST /api/batches<br/>Create batch + jobs"]
+        BatchGetAPI["GET /api/batches<br/>List batches"]
+        BatchDetailAPI["GET /api/batches/:id<br/>Batch status + progress"]
+        AnalyzeAPI["POST /api/certificates/analyze<br/>Legacy single analysis"]
+        WorkerAPI["GET|POST /api/worker<br/>Process queue"]
+    end
+
+    subgraph AIEngine["🤖 AI Pipeline"]
+        Pipeline["runPipeline()"]
+        Gemini["1️⃣ Google Gemini<br/>2.5 Flash"]
+        OpenRouter["2️⃣ OpenRouter<br/>Fallback"]
+        HuggingFace["3️⃣ HuggingFace<br/>Qwen3-VL"]
+        MockFallback["4️⃣ Mock<br/>Filename heuristic"]
+    end
+
+    subgraph Queue["📋 Queue Processor"]
+        ClaimJob["claimNextJob()<br/>SKIP LOCKED"]
+        ProcessJob["processJob()"]
+        Cleanup["cleanupStuckJobs()<br/>>10min timeout"]
+    end
+
+    subgraph Supabase["☁️ Supabase"]
+        Auth["Auth<br/>JWT Sessions"]
+        DB["PostgreSQL"]
+        Storage["Storage<br/>certificates bucket"]
+        Realtime["Realtime<br/>Live updates"]
+    end
+
+    subgraph DBTables["📊 Database Tables"]
+        Profiles["profiles<br/>id, role, name, email"]
+        Certificates["certificates<br/>file, status, weight"]
+        AIAnalysis["certificate_ai_analysis<br/>extracted data, confidence"]
+        Reviews["certificate_reviews<br/>lecturer decision"]
+        Batches["review_batches<br/>progress tracking"]
+        Jobs["review_jobs<br/>queue items"]
+        WeightRules["weight_rules<br/>category → weight"]
+        Notifications["notifications<br/>status changes"]
+        AuditLogs["audit_logs<br/>all changes"]
+    end
+
+    subgraph Triggers["⚙️ DB Triggers"]
+        T1["handle_new_user"]
+        T2["handle_certificate_status_change"]
+        T3["update_batch_progress"]
+        T4["handle_certificate_audit_log"]
+    end
+
+    subgraph Deploy["🚀 Deployment"]
+        Vercel["Vercel<br/>Region: sin1 (Singapore)"]
+        Cron["Cron Job<br/>Daily 02:00 UTC"]
+    end
+
+    Student --> StudentDash
+    Lecturer --> LecturerDash
+    Admin --> AdminDash
+    Users --> LoginPage
+
+    LoginPage --> Auth
+    StudentDash --> BatchAPI
+    StudentDash --> BatchGetAPI
+    StudentDash --> BatchDetailAPI
+    StudentDash --> Storage
+    LecturerDash --> Reviews
+    LecturerDash --> Storage
+    AdminDash --> WeightRules
+    AdminDash --> AuditLogs
+
+    StudentDash -.->|Realtime Subscribe| Realtime
+
+    BatchAPI -->|"1. Insert records"| DB
+    BatchAPI -->|"2. Upload files"| Storage
+    BatchAPI -->|"3. Fire & forget"| WorkerAPI
+
+    WorkerAPI --> Cleanup
+    WorkerAPI --> ClaimJob
+    ClaimJob --> ProcessJob
+    ProcessJob --> Pipeline
+
+    Pipeline --> Gemini
+    Gemini -.->|"fail"| OpenRouter
+    OpenRouter -.->|"fail"| HuggingFace
+    HuggingFace -.->|"fail"| MockFallback
+
+    Pipeline -->|"Save results"| AIAnalysis
+    Pipeline -->|"Update status"| Certificates
+
+    Cron --> WorkerAPI
+    Vercel --> Frontend
+    Vercel --> API
+
+    DB --> Profiles
+    DB --> Certificates
+    DB --> AIAnalysis
+    DB --> Reviews
+    DB --> Batches
+    DB --> Jobs
+    DB --> WeightRules
+    DB --> Notifications
+    DB --> AuditLogs
+
+    T1 -.-> Profiles
+    T2 -.-> Notifications
+    T3 -.-> Batches
+    T4 -.-> AuditLogs
+
+    Certificates --> Reviews
+    Certificates --> AIAnalysis
+    Batches --> Jobs
+
+    style Users fill:#e1f5fe
+    style Frontend fill:#f3e5f5
+    style API fill:#fff3e0
+    style AIEngine fill:#e8f5e9
+    style Queue fill:#fce4ec
+    style Supabase fill:#e0f2f1
+    style DBTables fill:#f1f8e9
+    style Triggers fill:#fff8e1
+    style Deploy fill:#ede7f6

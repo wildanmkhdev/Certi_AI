@@ -147,3 +147,18 @@ export interface AuditLog {
   new_data: Record<string, unknown> | null;
   created_at: string;
 }
+
+export interface StudentAdvisor {
+  student_id: string;
+  lecturer_id: string;
+  slot: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BatchReviewer {
+  batch_id: string;
+  lecturer_id: string;
+  created_at: string;
+}
+

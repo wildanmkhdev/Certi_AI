@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { certificates } = body as {
+    const { certificates, reviewer_ids } = body as {
       certificates: Array<{
         id: string;
         file_name: string;
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
         file_size: number;
         file_path: string;
       }>;
+      reviewer_ids: string[];
     };
 
     if (!Array.isArray(certificates) || certificates.length === 0) {
@@ -50,6 +51,13 @@ export async function POST(request: NextRequest) {
     if (certificates.length > 20) {
       return NextResponse.json(
         { error: 'Maximum 20 certificates per batch' },
+        { status: 400 }
+      );
+    }
+
+    if (!Array.isArray(reviewer_ids) || reviewer_ids.length === 0) {
+      return NextResponse.json(
+        { error: 'Pilih minimal 1 dosen pembimbing untuk mereview sertifikat.' },
         { status: 400 }
       );
     }
@@ -67,6 +75,22 @@ export async function POST(request: NextRequest) {
 
     if (batchError || !batch) {
       throw new Error(batchError?.message ?? 'Failed to create batch');
+    }
+
+    // 1b. Insert batch reviewers
+    const reviewerInserts = reviewer_ids.map(rid => ({
+      batch_id: batch.id,
+      lecturer_id: rid,
+    }));
+
+    const { error: reviewerError } = await supabaseAdmin
+      .from('batch_reviewers')
+      .insert(reviewerInserts);
+
+    if (reviewerError) {
+      // Rollback batch
+      await supabaseAdmin.from('review_batches').delete().eq('id', batch.id);
+      throw new Error('Gagal menetapkan dosen pembimbing untuk batch ini: ' + reviewerError.message);
     }
 
     // 2. Insert certificate records
