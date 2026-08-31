@@ -134,6 +134,10 @@ create policy "Allow lecturers to select assigned student profiles" on public.pr
     or public.is_admin(auth.uid())
   );
 
+-- Profile policy baru: Izinkan semua user select profil dosen
+create policy "Allow public to select lecturer profiles" on public.profiles
+  for select using (role = 'lecturer');
+
 -- 6. Perbarui trigger handle_new_user untuk meng-insert student_advisors secara otomatis
 create or replace function public.handle_new_user()
 returns trigger security definer as $$
