@@ -175,3 +175,42 @@ begin
 end;
 $$ language plpgsql;
 
+-- 7. Perbaiki RLS Infinite Recursion Loops (dengan memisahkan query via security definer helpers)
+create or replace function public.is_batch_owner(batch_uuid uuid, user_uuid uuid)
+returns boolean security definer as $$
+begin
+  return exists (
+    select 1 from public.review_batches
+    where id = batch_uuid and student_id = user_uuid
+  );
+end;
+$$ language plpgsql;
+
+create or replace function public.is_certificate_owner(cert_uuid uuid, user_uuid uuid)
+returns boolean security definer as $$
+begin
+  return exists (
+    select 1 from public.certificates
+    where id = cert_uuid and student_id = user_uuid
+  );
+end;
+$$ language plpgsql;
+
+drop policy if exists "Allow students to view own batch reviewers" on public.batch_reviewers;
+create policy "Allow students to view own batch reviewers" on public.batch_reviewers
+  for select using (
+    public.is_batch_owner(batch_id, auth.uid())
+  );
+
+drop policy if exists "Allow select own reviews" on public.certificate_reviews;
+create policy "Allow students to select own reviews" on public.certificate_reviews
+  for select using (
+    public.is_certificate_owner(certificate_id, auth.uid())
+  );
+
+create policy "Allow lecturers to select reviews" on public.certificate_reviews
+  for select using (
+    public.is_lecturer(auth.uid()) or public.is_admin(auth.uid())
+  );
+
+
